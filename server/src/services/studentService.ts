@@ -1,7 +1,8 @@
-import { db } from "../app";
-
+import { db } from "../firebase";
+import crypto from "crypto";
+import { sendSetupPasswordEmail } from "./email.service";
 export interface studentData {
-  name: string;
+  fullName: string;
   phone: string;
   email: string;
 }
@@ -12,14 +13,26 @@ export interface lessonData {
 class studentService {
   static addStudent = async (data: studentData) => {
     try {
-      if (!data.name || !data.phone || !data.email)
+      if (!data.fullName || !data.phone || !data.email)
         return "The fields are empty";
       let exists = await db
-        .collection("students")
+        .collection("users")
         .where("email", "==", data.email)
         .get();
       if (exists.docs.length) return "The student already exists";
-      await db.collection("students").add(data);
+
+      const token = crypto.randomBytes(16).toString("hex");
+      const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+
+      await db.collection("users").add({
+        ...data,
+        isActive: false,
+        role: "student",
+        setupToken: token,
+        setupTokenExpires: expiresAt,
+        createdAt: Date.now(),
+      });
+      sendSetupPasswordEmail(data.email, token);
       return "The student was added successfully";
     } catch (error) {
       return false;
@@ -28,8 +41,15 @@ class studentService {
 
   static getStudents = async () => {
     try {
-      let students = await db.collection("students").get();
-      return students.docs.map((doc) => doc.data());
+      let students = await db
+        .collection("users")
+        .where("role", "==", "student")
+        .select("fullName", "isActive", "email", "phone", "role", "id")
+        .get();
+      return students.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
     } catch (error) {
       return undefined;
     }
@@ -40,7 +60,7 @@ class studentService {
       if (!phone) return "The fields are empty";
 
       let student = await db
-        .collection("students")
+        .collection("users")
         .where("phone", "==", phone)
         .limit(1)
         .get();
@@ -55,8 +75,8 @@ class studentService {
   static updateStudent = async (id: string, data: studentData) => {
     try {
       if (!id) return "The fields are empty";
-      await db.collection("students").doc(id).update({
-        name: data.name,
+      await db.collection("users").doc(id).update({
+        fullName: data.fullName,
         phone: data.phone,
         email: data.email,
       });
@@ -69,7 +89,7 @@ class studentService {
     try {
       if (!phone) return "The fields are empty";
       let listUsers = await db
-        .collection("students")
+        .collection("users")
         .where("phone", "in", phone)
         .get();
       if (listUsers.docs.length === 0) return "students does not exist";
@@ -90,7 +110,7 @@ class studentService {
     try {
       if (!phone) return "The fields are empty";
       let student = await db
-        .collection("students")
+        .collection("users")
         .where("phone", "==", phone)
         .get();
       return student.docs.map((doc) => doc.data());

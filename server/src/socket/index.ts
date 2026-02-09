@@ -1,5 +1,5 @@
 import { Server, Socket } from "socket.io";
-import { db } from "../app";
+import { db } from "../firebase";
 export interface ChatMessage {
   roomId: string;
   userId: string;
@@ -23,14 +23,12 @@ export const socketService = (io: Server) => {
           //createdAt: FieldValue.serverTimestamp(),
         };
 
-        // save to Firestore
         await db
           .collection("rooms")
           .doc(message.roomId)
           .collection("messages")
           .add(data);
 
-        // emit realtime
         io.to(message.roomId).emit("new_message", data);
       } catch (err) {
         console.error("Save message error:", err);

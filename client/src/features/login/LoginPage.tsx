@@ -28,7 +28,7 @@ import {
   type userRegister,
 } from "./loginService";
 import { useNavigate } from "react-router";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch } from "react-redux";
 import { saveUserlogined } from "../../redux/usersReducer";
 const { Title, Text } = Typography;
 const LoginPage = () => {
@@ -48,8 +48,6 @@ const LoginPage = () => {
   }, []);
   const handleRegisterSubmit = async (values: userRegister) => {
     setLoading(true);
-    console.log("Registration Values:", values);
-
     const result = await register(values);
     if (result.data) {
       if (result.status === 200) {

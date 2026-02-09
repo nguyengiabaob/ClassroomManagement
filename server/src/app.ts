@@ -1,4 +1,4 @@
-// import * as socketIo from "socket.io";
+import * as socketIo from "socket.io";
 import http from "http";
 import { socketService } from "./socket";
 import "dotenv/config";

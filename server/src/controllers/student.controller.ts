@@ -3,6 +3,7 @@ import studentService, {
   lessonData,
   studentData,
 } from "../services/studentService";
+import { getDecode } from "../utils/jwtAuth";
 class studentController {
   static addStudent = async (req: Request, res: Response) => {
     try {
@@ -66,14 +67,18 @@ class studentController {
   };
 
   static editStudent = async (req: Request, res: Response) => {
-    let id = "";
-    try {
-      const { data } = req.body as { data: studentData };
-      const result = await studentService.updateStudent(id, data);
-      return res.status(200).json(result);
-    } catch (error) {
-      return res.status(500).json(error);
+    let userLogin = getDecode(req);
+    let id = userLogin?.id;
+    if (id) {
+      try {
+        const { data } = req.body as { data: studentData };
+        const result = await studentService.updateStudent(id, data);
+        return res.status(200).json(result);
+      } catch (error) {
+        return res.status(500).json(error);
+      }
     }
+    return res.status(500).json({ message: "Error" });
   };
 }
 export default studentController;

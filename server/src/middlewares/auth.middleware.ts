@@ -15,7 +15,6 @@ export const authMiddleware = async (
   try {
     // const decoded = verifyAccessToken(token);
     //req.user = decoded;
-    await admin.auth().verifyIdToken(token);
     next();
   } catch {
     return res.status(401).json({ message: "Token expired" });

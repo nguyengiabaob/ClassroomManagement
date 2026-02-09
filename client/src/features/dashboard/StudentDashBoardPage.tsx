@@ -33,7 +33,7 @@ const StudentDashBoardPage = () => {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-8xl mx-auto space-y-6">
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-8 rounded-2xl text-white shadow-lg">
         <Title level={3} style={{ color: "white" }}>
           Welcome back,{userLogined?.name}!

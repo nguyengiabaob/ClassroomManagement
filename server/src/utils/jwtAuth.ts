@@ -1,8 +1,10 @@
+import { Request } from "express";
 import jwt, { JwtPayload, Secret, SignOptions } from "jsonwebtoken";
 import ms from "ms";
 export interface TokenPayload extends JwtPayload {
   phone?: number;
   email?: string;
+  id?: string;
 }
 
 const toSeconds = (value: string | undefined, fallback: number) =>
@@ -23,3 +25,12 @@ export const verifyAccessToken = (token: string) =>
 
 export const verifyRefreshToken = (token: string) =>
   jwt.verify(token, process.env.REFRESH_TOKEN_SECRET as string) as TokenPayload;
+
+export const getDecode = (req: Request) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return undefined;
+  const token = authHeader.split(" ")[1];
+
+  const decoded = verifyAccessToken(token);
+  return decoded;
+};

@@ -41,7 +41,7 @@ const MainLayout = (props: MainLayoutProps) => {
     setView("dashboard");
   };
   return (
-    <Layout className="min-h-screen">
+    <Layout className="!min-h-screen">
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
@@ -71,10 +71,20 @@ const MainLayout = (props: MainLayoutProps) => {
             {
               key: "dashboard",
               icon: <BookOutlined />,
-              label: "Bảng điều khiển",
+              label: "Dashboard",
+              onClick: () => {
+                navigate("/dashboard/instructor");
+              },
             },
-            { key: "chat", icon: <MessageOutlined />, label: "Tin nhắn" },
-            { key: "profile", icon: <UserOutlined />, label: "Hồ sơ cá nhân" },
+            {
+              key: "chat",
+              icon: <MessageOutlined />,
+              label: "Chat",
+              onClick: () => {
+                navigate("/chat");
+              },
+            },
+            { key: "profile", icon: <UserOutlined />, label: "Profile " },
           ]}
         />
         <div className="absolute bottom-6 w-full px-6">
@@ -92,9 +102,12 @@ const MainLayout = (props: MainLayoutProps) => {
       </Sider>
 
       <Layout className="bg-slate-50">
-        <Header className="bg-white px-8 flex items-center justify-between shadow-sm h-16 sticky top-0 z-20">
+        <Header
+          style={{ backgroundColor: "#0015291a" }}
+          className="bg-white px-8 flex items-center justify-between shadow-sm h-16 sticky top-0 z-20"
+        >
           <Title level={5} style={{ margin: 0, color: "#64748b" }}>
-            {view === "dashboard" ? "TỔNG QUAN" : view.toUpperCase()}
+            {view === "dashboard" ? "DashBoard" : view.toUpperCase()}
           </Title>
           <Space size="middle">
             <Badge count={5} size="small">
@@ -122,7 +135,7 @@ const MainLayout = (props: MainLayoutProps) => {
         </Header>
 
         <Content className="p-4 md:p-8">
-          <div className="max-w-7xl mx-auto h-full">{children}</div>
+          <div className="max-w-8xl mx-auto h-full">{children}</div>
         </Content>
         <Footer className="text-center text-slate-400 py-6">
           Skipli Classroom Management System ©2024

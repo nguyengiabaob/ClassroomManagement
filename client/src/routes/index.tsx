@@ -5,6 +5,7 @@ import InstructorDashboardPage from "../features/dashboard/InstructorDashboardPa
 import StudentDashBoardPage from "../features/dashboard/StudentDashBoardPage";
 import SetupPasswordPage from "../features/SetUpPassword/SetupPasswordPage";
 import MainLayout from "../layout/MainLayout";
+import ChatPage from "../features/chat/ChatPage";
 
 const RoutesApp = () => {
   return (
@@ -12,9 +13,7 @@ const RoutesApp = () => {
       <Route path="setup-password" element={<SetupPasswordPage />} />
       <Route element={<LoginPage />} path="/login"></Route>
 
-      <Route path="*">
-        <RoutesMainApp />
-      </Route>
+      <Route path="*" element={<RoutesMainApp />}></Route>
 
       {/* <Route></Route> */}
     </Routes>
@@ -32,6 +31,7 @@ const RoutesMainApp = () => {
           ></Route>
           <Route path="student" element={<StudentDashBoardPage />} />
         </Route>
+        <Route path="/chat" element={<ChatPage />}></Route>
       </Routes>
     </MainLayout>
   );

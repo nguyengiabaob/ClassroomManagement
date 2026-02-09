@@ -1,17 +1,18 @@
 import React, { useEffect } from "react";
+
+import "./index.css";
+
 import "./App.css";
 import { RoutesApp } from "./routes";
-import { useNavigate } from "react-router";
 
 function App() {
-  const navigate = useNavigate();
   const checkUserLogin = () => {
-    localStorage.getItem("user_session");
-    if (!checkUserLogin) {
-      window.location.href = "/login";
-    } else {
-      navigate(window.location.href);
-    }
+    const userSession = localStorage.getItem("user_session");
+    console.log("sdsadas", userSession);
+
+    // if (!userSession && window.location.pathname !== "/login") {
+    //   window.location.href = "/login";
+    // }
   };
   useEffect(() => {
     checkUserLogin();

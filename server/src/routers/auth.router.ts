@@ -1,6 +1,6 @@
 import { Router } from "express";
-import { authController } from "../Controllers/auth.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
+import { authController } from "../Controllers/auth.controller";
 
 const route = Router();
 route.post("/createAccessCode", authController.createAccesscode);
