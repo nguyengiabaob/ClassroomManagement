@@ -4,19 +4,37 @@ import LoginPage from "../features/login/LoginPage";
 import InstructorDashboardPage from "../features/dashboard/InstructorDashboardPage";
 import StudentDashBoardPage from "../features/dashboard/StudentDashBoardPage";
 import SetupPasswordPage from "../features/SetUpPassword/SetupPasswordPage";
+import MainLayout from "../layout/MainLayout";
 
 const RoutesApp = () => {
   return (
     <Routes>
       <Route path="setup-password" element={<SetupPasswordPage />} />
       <Route element={<LoginPage />} path="/login"></Route>
-      <Route path="/dashboard/*">
-        <Route path="instructor" element={<InstructorDashboardPage />}></Route>
-        <Route path="student" element={<StudentDashBoardPage />} />
+
+      <Route path="*">
+        <RoutesMainApp />
       </Route>
+
       {/* <Route></Route> */}
     </Routes>
   );
 };
 
-export default RoutesApp;
+const RoutesMainApp = () => {
+  return (
+    <MainLayout>
+      <Routes>
+        <Route path="/dashboard/*">
+          <Route
+            path="instructor"
+            element={<InstructorDashboardPage />}
+          ></Route>
+          <Route path="student" element={<StudentDashBoardPage />} />
+        </Route>
+      </Routes>
+    </MainLayout>
+  );
+};
+
+export { RoutesApp, RoutesMainApp };
