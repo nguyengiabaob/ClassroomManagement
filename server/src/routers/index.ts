@@ -4,7 +4,7 @@ import studentRoutes from "./student.router";
 const router = express.Router();
 
 //api routers
-router.use("/auth", authRoutes);
+// router.use("/auth", authRoutes);
 
 router.use("/student", studentRoutes);
 

@@ -1,6 +1,3 @@
-import * as socketIo from "socket.io";
-import http from "http";
-import { socketService } from "./socket";
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
@@ -13,10 +10,6 @@ app.use("/api", apiRoutes);
 const startServer = async () => {
   try {
     // Start the server
-    console.log(
-      "process.env.FIREBASE_PROJECT_ID",
-      process.env.FIREBASE_PROJECT_ID,
-    );
 
     const port = 3000;
     app.listen(port, () => {
