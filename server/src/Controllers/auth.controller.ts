@@ -1,11 +1,9 @@
 import { Request, Response } from "express";
 import { authServices } from "../services";
-import { db } from "../firebase";
-import crypto from "crypto";
 import bcrypt from "bcrypt";
 import { signAccessToken, signRefreshToken } from "../utils/jwtAuth";
-import { refreshToken } from "firebase-admin/app";
-import { sendSetupPasswordEmail } from "../services/email.service";
+import db from "../services/database.service";
+import { Body, Controller, Injectable, Post } from "@nestjs/common";
 type UserType = "instructor" | "student";
 interface AccessCodeDoc {
   code: number;
@@ -18,119 +16,122 @@ export interface LoginData {
   email: string | null;
 }
 
+@Controller("auth")
+@Injectable()
 export class authController {
-  static createAccesscode = async (req: Request, res: Response) => {
-    const { phoneNumber } = req.body;
-    try {
-      if (!phoneNumber) {
-        return res.status(400).json({ error: "Phone number is required " });
-      }
+  constructor(private authService: authServices) {}
 
-      let code = authServices.generateVerifycationCode();
-      await authServices.CreateAccessCode(phoneNumber, code);
-      return res.status(200).json({
-        message: "Access code is sent",
-      });
-    } catch (error) {
-      res.status(500).json({ error: "Failed to create access code" });
-    }
-  };
-  static validateAccessCode = async (req: Request, res: Response) => {
-    const { phoneNumber, accessCode } = req.body;
-    if (!phoneNumber || !accessCode) {
-      return res.status(400).json({
-        error: "phoneNumber and accessCode are required",
-      });
-    }
-    try {
-      const phonenumberSaved = db.collection("accessCodes").doc(phoneNumber);
-      const snapPhoneNumber = await phonenumberSaved.get();
-      if (!snapPhoneNumber.exists) {
-        return res.status(401).json({ error: "Invalid or expired code" });
-      }
-      const { code, expiresAt } = snapPhoneNumber.data() as AccessCodeDoc;
-      console.log("snapPhoneNumber", snapPhoneNumber);
+  // static createAccesscode = async (req: Request, res: Response) => {
+  //   const { phoneNumber } = req.body;
+  //   try {
+  //     if (!phoneNumber) {
+  //       return res.status(400).json({ error: "Phone number is required " });
+  //     }
 
-      if (Date.now() > expiresAt) {
-        await phonenumberSaved.delete();
-        return res.status(401).json({ error: "Code expired" });
-      }
+  //     let code = authServices.generateVerifycationCode();
+  //     await authServices.CreateAccessCode(phoneNumber, code);
+  //     return res.status(200).json({
+  //       message: "Access code is sent",
+  //     });
+  //   } catch (error) {
+  //     res.status(500).json({ error: "Failed to create access code" });
+  //   }
+  // };
+  // static validateAccessCode = async (req: Request, res: Response) => {
+  //   const { phoneNumber, accessCode } = req.body;
+  //   if (!phoneNumber || !accessCode) {
+  //     return res.status(400).json({
+  //       error: "phoneNumber and accessCode are required",
+  //     });
+  //   }
+  //   try {
+  //     const phonenumberSaved = db.collection("accessCodes").doc(phoneNumber);
+  //     const snapPhoneNumber = await phonenumberSaved.get();
+  //     if (!snapPhoneNumber.exists) {
+  //       return res.status(401).json({ error: "Invalid or expired code" });
+  //     }
+  //     const { code, expiresAt } = snapPhoneNumber.data() as AccessCodeDoc;
+  //     console.log("snapPhoneNumber", snapPhoneNumber);
 
-      if (Number(code).toString() !== accessCode) {
-        return res.status(401).json({ error: "Invalid code" });
-      }
-      await phonenumberSaved.delete();
+  //     if (Date.now() > expiresAt) {
+  //       await phonenumberSaved.delete();
+  //       return res.status(401).json({ error: "Code expired" });
+  //     }
 
-      const userSnap = await db.collection("users").doc(phoneNumber).get();
+  //     if (Number(code).toString() !== accessCode) {
+  //       return res.status(401).json({ error: "Invalid code" });
+  //     }
+  //     await phonenumberSaved.delete();
 
-      const userType: UserType = userSnap.exists
-        ? ((userSnap.data()?.type as UserType) ?? "student")
-        : "student";
+  //     const userSnap = await db.collection("users").doc(phoneNumber).get();
 
-      const token = signAccessToken({
-        phone: phoneNumber,
-      });
+  //     const userType: UserType = userSnap.exists
+  //       ? ((userSnap.data()?.type as UserType) ?? "student")
+  //       : "student";
 
-      const refreshoken = signRefreshToken({
-        phone: phoneNumber,
-      });
+  //     const token = signAccessToken({
+  //       phone: phoneNumber,
+  //     });
 
-      return res.status(200).json({
-        authenticated: true,
-        name: userSnap.data()?.name ?? "I",
-        role: userType,
-        accessToken: token,
-        refreshToken: refreshoken,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({
-        error: "Failed to validate access code",
-      });
-    }
-  };
+  //     const refreshoken = signRefreshToken({
+  //       phone: phoneNumber,
+  //     });
 
-  loginWithUsernameAndPassword = async (req: Request, res: Response) => {
-    const { username, password } = req.body;
-
+  //     return res.status(200).json({
+  //       authenticated: true,
+  //       name: userSnap.data()?.name ?? "I",
+  //       role: userType,
+  //       accessToken: token,
+  //       refreshToken: refreshoken,
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //     return res.status(500).json({
+  //       error: "Failed to validate access code",
+  //     });
+  //   }
+  // };
+  @Post("login")
+  loginWithUsernameAndPassword(@Body() body: any) {
+    const { username, password } = body;
     if (!username || !password) {
-      return res.status(400).json({ message: "Wrong username or password" });
+      return { message: "Wrong username or password" };
     }
 
-    const snap = await db
-      .collection("users")
-      .where("username", "==", username)
-      .limit(1)
-      .get();
+    // const snap = await db
+    //   .collection("users")
+    //   .where("username", "==", username)
+    //   .limit(1)
+    //   .get();
 
-    if (snap.empty) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    // if (snap.empty) {
+    //   return { message: "Invalid credentials" };
+    // }
 
-    const user = snap.docs[0].data();
+    // const user = snap.docs[0].data();
 
-    const isMatchPassword = await bcrypt.compare(password, user.passwordHash);
+    // const isMatchPassword = await bcrypt.compare(password, user.passwordHash);
 
-    if (!isMatchPassword) {
-      return res.status(401).json({ message: "Password is wrong" });
-    }
+    // if (!isMatchPassword) {
+    //   return { message: "Password is wrong" };
+    // }
 
-    const token = signAccessToken({
-      email: username,
-    });
+    // const token = signAccessToken({
+    //   email: username,
+    // });
 
-    const refreshToken = signRefreshToken({
-      email: username,
-    });
+    // const refreshToken = signRefreshToken({
+    //   email: username,
+    // });
 
-    return res.json({
-      accessToken: token,
-      refreshToken: refreshToken,
-      role: user.role,
-      name: user.name,
-      authenticated: true,
-    });
-  };
+    // return res.json({
+    //   accessToken: token,
+    //   refreshToken: refreshToken,
+    //   role: user.role,
+    //   name: user.name,
+    //   authenticated: true,
+    // });
+  }
 
   static registerUser = async (req: Request, res: Response) => {
     const { fullName, email, phone } = req.body;
@@ -139,68 +140,64 @@ export class authController {
       return res.status(400).json({ message: "Missing fields" });
     }
 
-    const existedUser = await db
-      .collection("users")
-      .where("email", "==", email)
-      .limit(1)
-      .get();
-    console.log("dsadsad", existedUser);
+    // const existedUser = await db.
+    // console.log("dsadsad", existedUser);
 
-    if (!existedUser.empty) {
-      return res.status(409).json({ message: "Email already exists" });
-    }
-    const setupToken = crypto.randomBytes(16).toString("hex");
-    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+    // if (!existedUser.empty) {
+    //   return res.status(409).json({ message: "Email already exists" });
+    // }
+    // const setupToken = crypto.randomBytes(16).toString("hex");
+    // const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
 
-    await db.collection("users").add({
-      fullName,
-      email,
-      phone,
-      isActive: false,
-      setupToken,
-      setupTokenExpires: expiresAt,
-      createdAt: Date.now(),
-      role: "student",
-    });
-    await sendSetupPasswordEmail(email, setupToken);
-    return res.json({
-      message: "Check your email to set up password",
-    });
+    // await db.collection("users").add({
+    //   fullName,
+    //   email,
+    //   phone,
+    //   isActive: false,
+    //   setupToken,
+    //   setupTokenExpires: expiresAt,
+    //   createdAt: Date.now(),
+    //   role: "student",
+    // });
+    // await sendSetupPasswordEmail(email, setupToken);
+    // return res.json({
+    //   message: "Check your email to set up password",
+    // });
   };
 
-  static setupPassword = async (req: Request, res: Response) => {
-    const { token, password } = req.body;
+  // static setupPassword = async (req: Request, res: Response) => {
+  //   const { token, password } = req.body;
 
-    if (!token || !password) {
-      return res.status(400).json({ message: "Missing data" });
-    }
+  //   if (!token || !password) {
+  //     return res.status(400).json({ message: "Missing data" });
+  //   }
 
-    const snap = await db
-      .collection("users")
-      .where("setupToken", "==", token)
-      .limit(1)
-      .get();
+  //   const snap = await db
+  //     .collection("users")
+  //     .where("setupToken", "==", token)
+  //     .limit(1)
+  //     .get();
 
-    if (snap.empty) {
-      return res.status(400).json({ message: "Invalid token" });
-    }
+  //   if (snap.empty) {
+  //     return res.status(400).json({ message: "Invalid token" });
+  //   }
 
-    const doc = snap.docs[0];
-    const user = doc.data();
+  //   const doc = snap.docs[0];
+  //   const user = doc.data();
 
-    if (Date.now() > user.setupTokenExpires) {
-      return res.status(400).json({ message: "Token expired" });
-    }
+  //   if (Date.now() > user.setupTokenExpires) {
+  //     return res.status(400).json({ message: "Token expired" });
+  //   }
 
-    const passwordHash = await bcrypt.hash(password, 8);
+  //   const passwordHash = await bcrypt.hash(password, 8);
 
-    await doc.ref.update({
-      passwordHash,
-      isActive: true,
-      setupToken: null,
-      setupTokenExpires: null,
-    });
+  //   await doc.ref.update({
+  //     passwordHash,
+  //     isActive: true,
+  //     setupToken: null,
+  //     setupTokenExpires: null,
+  //   });
 
-    return res.json({ message: "Password set successfully" });
-  };
+  //   return res.json({ message: "Password set successfully" });
+  // };
 }

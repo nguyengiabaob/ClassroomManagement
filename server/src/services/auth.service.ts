@@ -1,7 +1,12 @@
+import { Injectable } from "@nestjs/common";
 import { db } from "../firebase";
-import { TwilioService } from "./twilio.service";
 
+@Injectable()
 export class authServices {
+  constructor(
+    private prisma: PrismaService,
+    // private jwt: JwtService,
+  ) {}
   static generateVerifycationCode = () => {
     return Math.floor(100000 + Math.random() * 900000);
   };
