@@ -1,6 +1,6 @@
 import db from "./database.service";
 
-export interface studentData {
+export interface userData {
   fullName: string;
   phone: string;
   email: string;
@@ -10,33 +10,31 @@ export interface lessonData {
   description: string;
 }
 class studentService {
-  // static addStudent = async (data: studentData) => {
-  //   try {
-  //     if (!data.fullName || !data.phone || !data.email)
-  //       return "The fields are empty";
-  //     let exists = await db
-  //       .collection("users")
-  //       .where("email", "==", data.email)
-  //       .get();
-  //     if (exists.docs.length) return "The student already exists";
-
-  //     const token = crypto.randomBytes(16).toString("hex");
-  //     const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-
-  //     await db.collection("users").add({
-  //       ...data,
-  //       isActive: false,
-  //       role: "student",
-  //       setupToken: token,
-  //       setupTokenExpires: expiresAt,
-  //       createdAt: Date.now(),
-  //     });
-  //     sendSetupPasswordEmail(data.email, token);
-  //     return "The student was added successfully";
-  //   } catch (error) {
-  //     return false;
-  //   }
-  // };
+  static addUser = async (data: userData) => {
+    // try {
+    //   if (!data.fullName || !data.phone || !data.email)
+    //     return "The fields are empty";
+    //   let exists = await db
+    //     .collection("users")
+    //     .where("email", "==", data.email)
+    //     .get();
+    //   if (exists.docs.length) return "The student already exists";
+    //   const token = crypto.randomBytes(16).toString("hex");
+    //   const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+    //   await db.collection("users").add({
+    //     ...data,
+    //     isActive: false,
+    //     role: "student",
+    //     setupToken: token,
+    //     setupTokenExpires: expiresAt,
+    //     createdAt: Date.now(),
+    //   });
+    //   sendSetupPasswordEmail(data.email, token);
+    //   return "The student was added successfully";
+    // } catch (error) {
+    //   return false;
+    // }
+  };
 
   static getStudents = async () => {
     try {

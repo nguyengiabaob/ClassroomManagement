@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
 import { authServices } from "../services";
-import bcrypt from "bcrypt";
-import { signAccessToken, signRefreshToken } from "../utils/jwtAuth";
-import db from "../services/database.service";
-import { Body, Controller, Injectable, Post } from "@nestjs/common";
-type UserType = "instructor" | "student";
+import { Body, Controller, Injectable, Post, Req, Res } from "@nestjs/common";
 interface AccessCodeDoc {
   code: number;
   expiresAt: number;
@@ -92,11 +88,8 @@ export class authController {
   //   }
   // };
   @Post("login")
-  loginWithUsernameAndPassword(@Body() body: any) {
-    const { username, password } = body;
-    if (!username || !password) {
-      return { message: "Wrong username or password" };
-    }
+  loginWithUsernameAndPassword(@Body() body: any, req: Request) {
+    return this.authService.login(body.email, body.password, req);
 
     // const snap = await db
     //   .collection("users")
@@ -132,72 +125,14 @@ export class authController {
     //   authenticated: true,
     // });
   }
+  @Post("resgisterUser")
+  registerUser(@Req() req: Request, @Res() res: Response) {
+    console.log("dsadsad", req);
 
-  static registerUser = async (req: Request, res: Response) => {
-    const { fullName, email, phone } = req.body;
-
-    if (!fullName || !email || !phone) {
-      return res.status(400).json({ message: "Missing fields" });
-    }
-
-    // const existedUser = await db.
-    // console.log("dsadsad", existedUser);
-
-    // if (!existedUser.empty) {
-    //   return res.status(409).json({ message: "Email already exists" });
-    // }
-    // const setupToken = crypto.randomBytes(16).toString("hex");
-    // const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
-
-    // await db.collection("users").add({
-    //   fullName,
-    //   email,
-    //   phone,
-    //   isActive: false,
-    //   setupToken,
-    //   setupTokenExpires: expiresAt,
-    //   createdAt: Date.now(),
-    //   role: "student",
-    // });
-    // await sendSetupPasswordEmail(email, setupToken);
-    // return res.json({
-    //   message: "Check your email to set up password",
-    // });
-  };
-
-  // static setupPassword = async (req: Request, res: Response) => {
-  //   const { token, password } = req.body;
-
-  //   if (!token || !password) {
-  //     return res.status(400).json({ message: "Missing data" });
-  //   }
-
-  //   const snap = await db
-  //     .collection("users")
-  //     .where("setupToken", "==", token)
-  //     .limit(1)
-  //     .get();
-
-  //   if (snap.empty) {
-  //     return res.status(400).json({ message: "Invalid token" });
-  //   }
-
-  //   const doc = snap.docs[0];
-  //   const user = doc.data();
-
-  //   if (Date.now() > user.setupTokenExpires) {
-  //     return res.status(400).json({ message: "Token expired" });
-  //   }
-
-  //   const passwordHash = await bcrypt.hash(password, 8);
-
-  //   await doc.ref.update({
-  //     passwordHash,
-  //     isActive: true,
-  //     setupToken: null,
-  //     setupTokenExpires: null,
-  //   });
-
-  //   return res.json({ message: "Password set successfully" });
-  // };
+    return this.authService.registerUser(req, res);
+  }
+  @Post("setupPassword")
+  setupPassword(@Body() body: any, @Res() res: Response) {
+    return this.authService.setupPassword(body.token, body.password, res);
+  }
 }

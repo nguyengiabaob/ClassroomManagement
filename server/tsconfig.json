@@ -8,8 +8,9 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "types": ["node"],
+    "moduleResolution": "node",
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*", "prisma.config.ts"]
 }

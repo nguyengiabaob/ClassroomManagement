@@ -1,8 +1,5 @@
 import { Request, Response } from "express";
-import studentService, {
-  lessonData,
-  studentData,
-} from "../services/studentService";
+import studentService from "../services/studentService";
 import { getDecode } from "../utils/jwtAuth";
 class studentController {
   // static addStudent = async (req: Request, res: Response) => {

@@ -1,15 +1,18 @@
 import "dotenv/config";
-import express from "express";
-import cors from "cors";
-import apiRoutes from "./routers";
+import { NestFactory } from "@nestjs/core";
+import { AppModule } from "./App.module";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-app.use("/api", apiRoutes);
 const startServer = async () => {
   try {
+    const app = await NestFactory.create(AppModule);
     // Start the server
+    app.setGlobalPrefix("api");
+
+    app.enableCors({
+      origin: "*", // hoặc http://localhost:5173
+      methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS",
+      credentials: true,
+    });
 
     const port = 3000;
     app.listen(port, () => {
@@ -20,9 +23,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-
-app.get("/", (req, res) => {
-  res.send("API is running 🚀");
-});
 
 startServer();
