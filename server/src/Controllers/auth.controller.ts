@@ -135,4 +135,10 @@ export class authController {
   setupPassword(@Body() body: any, @Res() res: Response) {
     return this.authService.setupPassword(body.token, body.password, res);
   }
+
+  @Post("resetPassword")
+  resetPassword(@Body() body: any, @Res() res: Response) {
+    let email = body.email;
+    return this.authService.setupPassword(email, res);
+  }
 }

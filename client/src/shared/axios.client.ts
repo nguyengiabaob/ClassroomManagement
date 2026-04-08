@@ -77,6 +77,8 @@ export class AxiosClient {
 
             return AxiosClient.instance(originalRequest);
           } catch (err) {
+            console.log(err);
+
             // processQueue(err, null);
             // localStorage.clear();
             // window.location.href = "/login";

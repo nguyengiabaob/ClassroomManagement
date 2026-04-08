@@ -140,4 +140,13 @@ export class authServices {
       message: "Password set up successfully. You can now log in.",
     });
   }
+
+  async resetpassword(email: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { email: email },
+    });
+    if (!user) {
+      throw new Error("Invalid user");
+    }
+  }
 }

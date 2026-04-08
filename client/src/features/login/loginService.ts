@@ -28,7 +28,7 @@ export const verifyAccessCode = async (phone: string, accessCode: string) =>
   });
 
 export const register = async (data: userRegister) =>
-  await AxiosClient.post<resultApiString>("/api/auth/registerUser", {
+  await AxiosClient.post<resultApiString>("/api/auth/resgisterUser", {
     phone: data.phone,
     email: data.email,
     fullName: data.name,
@@ -38,4 +38,14 @@ export const setPassword = async (token: string, password: string) =>
   await AxiosClient.post<resultApiString>("/api/auth/setupPassword", {
     token: token,
     password: password,
+  });
+
+export const login = async (userName: string, password: string) =>
+  await AxiosClient.post<resultApiString>("/api/auth/login", {
+    userName: userName,
+    password: password,
+  });
+export const resetPassword = async (email: string) =>
+  await AxiosClient.post<resultApiString>("/api/auth/login", {
+    email: email,
   });

@@ -14,3 +14,8 @@ export interface userDatalogin {
   email: string;
   //role: string;;
 }
+
+export interface userDataRegister {
+  userName: string;
+  password: string;
+}
