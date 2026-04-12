@@ -12,7 +12,7 @@ export interface userLoginData {
 
 export interface userRegister {
   name: string;
-  email: boolean;
+  email: string;
   phone: string;
 }
 
@@ -45,7 +45,7 @@ export const login = async (userName: string, password: string) =>
     userName: userName,
     password: password,
   });
-export const resetPassword = async (email: string) =>
-  await AxiosClient.post<resultApiString>("/api/auth/login", {
+export const forgetPassword = async (email: string) =>
+  await AxiosClient.post<resultApiString>("/api/auth/forgetPassword", {
     email: email,
   });

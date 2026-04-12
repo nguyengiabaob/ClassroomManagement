@@ -2,7 +2,6 @@ import React from "react";
 import { Route, Routes } from "react-router";
 import LoginPage from "../features/login/LoginPage";
 import InstructorDashboardPage from "../features/dashboard/InstructorDashboardPage";
-import StudentDashBoardPage from "../features/dashboard/StudentDashBoardPage";
 import SetupPasswordPage from "../features/SetUpPassword/SetupPasswordPage";
 import MainLayout from "../layout/MainLayout";
 import ChatPage from "../features/chat/ChatPage";
@@ -24,12 +23,12 @@ const RoutesMainApp = () => {
   return (
     <MainLayout>
       <Routes>
-        <Route path="/dashboard/*">
-          <Route
+        <Route path="/dashboard/*" element={<InstructorDashboardPage />}>
+          {/* <Route
             path="instructor"
             element={<InstructorDashboardPage />}
-          ></Route>
-          <Route path="student" element={<StudentDashBoardPage />} />
+          ></Route> */}
+          {/* <Route path="student" element={<StudentDashBoardPage />} /> */}
         </Route>
         <Route path="/chat" element={<ChatPage />}></Route>
       </Routes>

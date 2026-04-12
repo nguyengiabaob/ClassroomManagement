@@ -18,9 +18,16 @@ import {
   UserOutlined,
 } from "@ant-design/icons";
 import type { userDataRegister } from "../../models/userData.model";
-import { login, register, type userRegister } from "./loginService";
+import {
+  forgetPassword,
+  login,
+  register,
+  type userRegister,
+} from "./loginService";
+import { useNavigate } from "react-router";
 const { Title, Text } = Typography;
 const LoginPage = () => {
+  const navigation = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const [authMode, setAuthMode] = useState("login");
@@ -31,6 +38,7 @@ const LoginPage = () => {
       //setUser(JSON.parse(savedUser));
     }
   }, []);
+
   const handleRegisterSubmit = async (values: userRegister) => {
     setLoading(true);
     const result = await register(values);
@@ -57,15 +65,33 @@ const LoginPage = () => {
     }, 1500);
   };
 
-  const resetPassword = async (email: string) => {
-    if (email) {
+  const resetPassword = async (values: userRegister) => {
+    if (values.email) {
+      setLoading(true);
+      const result = await forgetPassword(values.email);
+
+      if (result.status == 200) {
+        message.success({
+          content: result.data?.message,
+        });
+      } else {
+        message.error({
+          content: result.data?.message,
+        });
+      }
+      setLoading(false);
+      return;
     }
+    message.error({
+      content: "user invalid",
+    });
+    return;
   };
 
   const onLogin = async (userName: string, password: string) => {
     const result = await login(userName, password);
 
-    if (!result.data) {
+    if (!result.data || result.status !== 200) {
       message.error("Error can't login");
       return false;
     }
@@ -78,14 +104,17 @@ const LoginPage = () => {
       const result = await onLogin(values.userName, values.password);
       if (result) {
         setTimeout(() => {
-          setLoading(false);
           setAuthMode("verify");
-          message.success("Login successful!");
+          //message.success("Login successful!");
+          navigation("/dashboard", {
+            replace: true,
+          });
         }, 1000);
       }
     } else {
       message.error("username and password are required");
     }
+    setLoading(false);
   };
 
   // const handleVerifyCode = async (values: userDataAcccessModel) => {
@@ -120,7 +149,7 @@ const LoginPage = () => {
       <Card className="w-full max-w-lg shadow-2xl rounded-2xl border-0 overflow-hidden">
         <div className="bg-blue-600 p-8 text-center text-white">
           <Title level={2} style={{ color: "white", margin: 0 }}>
-            Login
+            Constructor Office
           </Title>
           <Text style={{ color: "rgba(255,255,255,0.8)" }}>
             {authMode === "login" && "Welcome back! Please login."}
@@ -136,11 +165,11 @@ const LoginPage = () => {
             <Form layout="vertical" onFinish={handleSendCode}>
               <Form.Item
                 label="Username"
-                name="username"
+                name="userName"
                 rules={[
                   {
                     required: true,
-                    message: "Please enter your phone number or username",
+                    message: "Please enter your username",
                   },
                 ]}
               >
@@ -153,7 +182,7 @@ const LoginPage = () => {
 
               <Form.Item
                 label="Password"
-                name="password "
+                name="password"
                 rules={[
                   {
                     required: true,
@@ -192,10 +221,10 @@ const LoginPage = () => {
 
               <Button
                 type="link"
-                onClick={() => setAuthMode("register")}
+                onClick={() => setAuthMode("forgotpassword")}
                 className="p-0"
               >
-                forgot password
+                Forgot password
               </Button>
             </Form>
           )}
@@ -260,7 +289,7 @@ const LoginPage = () => {
           )}
 
           {authMode === "forgotpassword" && (
-            <Form layout="vertical" onFinish={handleRegisterSubmit}>
+            <Form layout="vertical" onFinish={resetPassword}>
               <Form.Item
                 label="Email Address"
                 name="email"
