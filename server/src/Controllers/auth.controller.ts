@@ -88,8 +88,12 @@ export class authController {
   //   }
   // };
   @Post("login")
-  loginWithUsernameAndPassword(@Body() body: any, req: Request) {
-    return this.authService.login(body.email, body.password, req);
+  loginWithUsernameAndPassword(
+    @Body() body: any,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.authService.login(body.email, body.password, req, res);
 
     // const snap = await db
     //   .collection("users")
@@ -136,9 +140,9 @@ export class authController {
     return this.authService.setupPassword(body.token, body.password, res);
   }
 
-  @Post("resetPassword")
+  @Post("forgetPassword")
   resetPassword(@Body() body: any, @Res() res: Response) {
     let email = body.email;
-    return this.authService.setupPassword(email, res);
+    return this.authService.forgetPassword(email, res);
   }
 }

@@ -18,16 +18,24 @@ export class authServices {
     return Math.floor(100000 + Math.random() * 900000);
   };
 
-  async login(email: string, password: string, req: Request) {
+  async login(email: string, password: string, req: Request, res: Response) {
     const user = await this.prisma.user.findFirst({ where: { email } });
 
-    if (!user) throw new Error("User not found");
-
+    if (!user) {
+      return res.status(400).json({
+        message: "User not found",
+      });
+    }
     if (!user.isActive)
       throw new Error("User is not active. Please set up your password.");
+    let passwordHash = (await bcrypt.hash(password, 10)).toString();
 
     const match = await bcrypt.compare(password, user.password ?? "");
-    if (!match) throw new Error("Wrong password");
+    if (match === false) {
+      return res.status(400).json({
+        message: "Wrong password",
+      });
+    }
 
     const tokens = this.generateTokens(user);
 
@@ -39,6 +47,9 @@ export class authServices {
         ip: req.ip,
         expiredAt: new Date(Date.now() + 7 * 86400000),
       },
+    });
+    return res.status(200).json({
+      accessToken: tokens.accessToken,
     });
   }
 
@@ -141,12 +152,35 @@ export class authServices {
     });
   }
 
-  async resetpassword(email: string) {
+  async forgetPassword(email: string, res: Response) {
     const user = await this.prisma.user.findFirst({
       where: { email: email },
     });
     if (!user) {
       throw new Error("Invalid user");
+    }
+
+    let resetPassword = process.env.PASSWORDRESET;
+    let passWordHash = await bcrypt.hash(resetPassword?.toString()!, 10);
+
+    const token = Crypto.randomBytes(16).toString("hex");
+    const expiresAt = Date.now() + 24 * 60 * 60 * 1000;
+    try {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          password: passWordHash,
+          verificationToken: token,
+          setupTokenExpires: expiresAt,
+        },
+      });
+
+      sendSetupPasswordEmail(email, token);
+      return res.status(200).json({
+        message: "Please check your email to set up your password.",
+      });
+    } catch (error) {
+      return error;
     }
   }
 }
