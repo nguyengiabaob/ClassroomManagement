@@ -79,10 +79,10 @@ export class AxiosClient {
           } catch (err) {
             console.log(err);
 
-            // processQueue(err, null);
-            // localStorage.clear();
-            // window.location.href = "/login";
-            // return Promise.reject(err);
+            processQueue(err, null);
+            localStorage.clear();
+            window.location.href = "/login";
+            return Promise.reject(err);
           } finally {
             isRefreshing = false;
           }

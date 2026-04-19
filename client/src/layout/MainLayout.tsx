@@ -22,6 +22,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { saveUserlogined } from "../redux/usersReducer";
 import type { RootState } from "../redux/store";
+import AppSideBar from "@/components/Layout/SideBar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -62,31 +63,7 @@ const MainLayout = (props: MainLayoutProps) => {
             {user?.role?.toUpperCase()}
           </Tag>
         </div>
-        <Menu
-          mode="inline"
-          selectedKeys={[view]}
-          onClick={({ key }) => setView(key)}
-          className="border-0 px-2"
-          items={[
-            {
-              key: "dashboard",
-              icon: <BookOutlined />,
-              label: "Dashboard",
-              onClick: () => {
-                navigate("/dashboard/instructor");
-              },
-            },
-            {
-              key: "chat",
-              icon: <MessageOutlined />,
-              label: "Chat",
-              onClick: () => {
-                navigate("/chat");
-              },
-            },
-            { key: "profile", icon: <UserOutlined />, label: "Profile " },
-          ]}
-        />
+        <AppSideBar />
         <div className="absolute bottom-6 w-full px-6">
           <Button
             type="text"

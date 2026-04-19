@@ -89,20 +89,29 @@ const LoginPage = () => {
   };
 
   const onLogin = async (userName: string, password: string) => {
-    const result = await login(userName, password);
+    try {
+      const result = await login(userName, password);
 
-    if (!result.data || result.status !== 200) {
-      message.error("Error can't login");
+      console.log("1215456", result);
+
+      if (!result.data || result.status != 200) {
+        message.error("Error can't login");
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.log("dasdasd", error);
       return false;
     }
-    return true;
   };
 
   const handleSendCode = async (values: userDataRegister) => {
     if (values.userName && values.password) {
       setLoading(true);
+      console.log("4556", values);
       const result = await onLogin(values.userName, values.password);
-      if (result) {
+
+      if (result === true) {
         setTimeout(() => {
           setAuthMode("verify");
           //message.success("Login successful!");
@@ -110,6 +119,8 @@ const LoginPage = () => {
             replace: true,
           });
         }, 1000);
+      } else {
+        setLoading(false);
       }
     } else {
       message.error("username and password are required");
