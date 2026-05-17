@@ -1,19 +1,11 @@
-import {
-  BellOutlined,
-  BookOutlined,
-  LogoutOutlined,
-  MessageOutlined,
-  UserOutlined,
-} from "@ant-design/icons";
+import { BellOutlined, LogoutOutlined } from "@ant-design/icons";
 import {
   Avatar,
   Badge,
   Button,
   Divider,
   Layout,
-  Menu,
   Space,
-  Tag,
   Typography,
 } from "antd";
 import Sider from "antd/es/layout/Sider";
@@ -42,29 +34,18 @@ const MainLayout = (props: MainLayoutProps) => {
     setView("dashboard");
   };
   return (
-    <Layout className="!min-h-screen">
+    <Layout className="h-screen overflow-hidden">
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
+        width={250}
         theme="light"
-        className="shadow-lg z-10"
+        className="shadow-lg z-10 relative"
       >
-        <div className="p-6 text-center border-b border-slate-100 mb-4">
-          <div className="bg-blue-600 w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center text-white font-bold text-2xl shadow-blue-200 shadow-lg">
-            S
-          </div>
-          <Title level={4} style={{ margin: 0 }}>
-            Skipli CMS
-          </Title>
-          <Tag
-            color={user?.role === "instructor" ? "gold" : "blue"}
-            className="mt-2 rounded-full border-0 px-3 py-0.5"
-          >
-            {user?.role?.toUpperCase()}
-          </Tag>
+        <div className="h-full overflow-y-auto pb-20">
+          <AppSideBar />
         </div>
-        <AppSideBar />
-        <div className="absolute bottom-6 w-full px-6">
+        <div className="absolute bottom-6 w-full px-6 bg-white pt-2">
           <Button
             type="text"
             danger
@@ -78,10 +59,10 @@ const MainLayout = (props: MainLayoutProps) => {
         </div>
       </Sider>
 
-      <Layout className="bg-slate-50">
+      <Layout className="bg-slate-50 flex flex-col">
         <Header
           style={{ backgroundColor: "#0015291a" }}
-          className="bg-white px-8 flex items-center justify-between shadow-sm h-16 sticky top-0 z-20"
+          className="bg-white px-8 flex items-center justify-between shadow-sm h-16 shrink-0 z-20"
         >
           <Title level={5} style={{ margin: 0, color: "#64748b" }}>
             {view === "dashboard" ? "DashBoard" : view.toUpperCase()}
@@ -111,10 +92,10 @@ const MainLayout = (props: MainLayoutProps) => {
           </Space>
         </Header>
 
-        <Content className="p-4 md:p-8">
+        <Content className="p-4 md:p-8 flex-1 overflow-y-auto">
           <div className="max-w-8xl mx-auto h-full">{children}</div>
         </Content>
-        <Footer className="text-center text-slate-400 py-6">
+        <Footer className="text-center text-slate-400 py-6 shrink-0">
           Skipli Classroom Management System ©2024
         </Footer>
       </Layout>

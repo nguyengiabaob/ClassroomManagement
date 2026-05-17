@@ -5,6 +5,7 @@ import InstructorDashboardPage from "../features/dashboard/InstructorDashboardPa
 import SetupPasswordPage from "../features/SetUpPassword/SetupPasswordPage";
 import MainLayout from "../layout/MainLayout";
 import ChatPage from "../features/chat/ChatPage";
+import Project from "@/features/Project/Project";
 
 const RoutesApp = () => {
   return (
@@ -23,13 +24,14 @@ const RoutesMainApp = () => {
   return (
     <MainLayout>
       <Routes>
-        <Route path="/dashboard/*" element={<InstructorDashboardPage />}>
+        <Route path="/" element={<InstructorDashboardPage />}>
           {/* <Route
             path="instructor"
             element={<InstructorDashboardPage />}
           ></Route> */}
           {/* <Route path="student" element={<StudentDashBoardPage />} /> */}
         </Route>
+        <Route path="/projects" element={<Project />}></Route>
         <Route path="/chat" element={<ChatPage />}></Route>
       </Routes>
     </MainLayout>

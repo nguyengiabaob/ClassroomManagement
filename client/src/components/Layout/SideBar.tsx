@@ -13,16 +13,8 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 
-import {
-  Home,
-  Building,
-  ListTodo,
-  AlertTriangle,
-  Package,
-  Users,
-  Settings,
-  HardHat,
-} from "lucide-react";
+import { HardHat } from "lucide-react";
+import { defaultSections } from "@/utils";
 
 export interface MenuItem {
   title: string;
@@ -39,26 +31,6 @@ export interface SideBarProps {
   sections?: MenuSection[];
   brandName?: string;
 }
-
-export const defaultSections: MenuSection[] = [
-  {
-    title: "CHÍNH",
-    items: [
-      { title: "Tổng quan", url: "/overview", icon: Home },
-      { title: "Dự án", url: "/projects", icon: Building },
-      { title: "Công việc", url: "/tasks", icon: ListTodo },
-      { title: "Vấn đề", url: "/issues", icon: AlertTriangle },
-    ],
-  },
-  {
-    title: "VẬN HÀNH",
-    items: [
-      { title: "Vật tư", url: "/materials", icon: Package },
-      { title: "Nhân sự", url: "/personnel", icon: Users },
-      { title: "Cài đặt", url: "/settings", icon: Settings },
-    ],
-  },
-];
 
 const AppSideBar: React.FC<SideBarProps> = ({
   sections = defaultSections,
@@ -91,7 +63,7 @@ const AppSideBar: React.FC<SideBarProps> = ({
                   {section.items.map((item) => (
                     <SidebarMenuItem key={item.title}>
                       <NavLink to={item.url} className="w-full block">
-                        {({ isActive }) => (
+                        {({ isActive }: { isActive: boolean }) => (
                           <SidebarMenuButton
                             isActive={isActive}
                             tooltip={item.title}
