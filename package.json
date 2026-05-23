@@ -3,6 +3,8 @@
     "fe": "cd client && npm run dev",
     "be": "cd server && npm start",
     "dev": "npx concurrently \"npm run fe\" \"npm run be\"",
-    "build": "cd client && npm run build"
+    "postinstall": "cd client && npm install && cd ../server && npm install",
+    "build": "cd client && npm run build && mkdir -p ../dist && cp -r dist/* ../dist",
+    "start": "cd server && npm run start:prod"
   }
 }
