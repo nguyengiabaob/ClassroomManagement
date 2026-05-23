@@ -2,6 +2,7 @@
   "scripts": {
     "fe": "cd client && yarn dev",
     "be": "cd server && yarn start",
-    "dev": "npx concurrently \"npm run fe\" \"npm run be\""
+    "dev": "npx concurrently \"npm run fe\" \"npm run be\"",
+    "build": "cd client && yarn build"
   }
 }
