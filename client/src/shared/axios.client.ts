@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosHeaders } from "axios";
 import type { AxiosError, AxiosInstance, AxiosRequestConfig } from "axios";
 import { refreshToken } from "./auth.api";
 let isRefreshing = false;
@@ -38,7 +38,7 @@ export class AxiosClient {
     AxiosClient.instance.interceptors.request.use((config) => {
       const token = localStorage.getItem("access_token");
       if (token) {
-        config.headers = config.headers ?? {};
+        config.headers = new AxiosHeaders(config.headers);
         config.headers.Authorization = `Bearer ${token}`;
       }
       return config;
