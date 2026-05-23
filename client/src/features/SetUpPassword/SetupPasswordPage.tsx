@@ -40,7 +40,7 @@ const SetupPasswordPage = () => {
   return (
     <Form layout="vertical" onFinish={handleSetupPassword}>
       <div className="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
-        <Text type="secondary" size="small">
+        <Text type="secondary" className="text-sm">
           <SafetyCertificateOutlined className="mr-2" />
           This is a secure page to set up your account credentials after email
           verification.
