@@ -5,7 +5,8 @@ import InstructorDashboardPage from "../features/dashboard/InstructorDashboardPa
 import SetupPasswordPage from "../features/SetUpPassword/SetupPasswordPage";
 import MainLayout from "../layout/MainLayout";
 import ChatPage from "../features/chat/ChatPage";
-import Project from "@/features/Project/Project";
+import Projects from "@/features/Project/Projects";
+import ProjectDetail from "@/features/Project/Detail/ProjectDetail";
 import FilesPage from "@/features/FilesPage/FilesPage";
 import ManagedFields from "@/features/ManagedFields/ManagedFields";
 
@@ -15,6 +16,8 @@ const RoutesApp = () => {
       <Route path="setup-password" element={<SetupPasswordPage />} />
       <Route element={<LoginPage />} path="/login"></Route>
       <Route element={<ManagedFields />} path="/managed-fields"></Route>
+      <Route element={<Projects />} path="/projects"></Route>
+      <Route element={<ProjectDetail />} path="/projects/:projectId"></Route>
 
       <Route path="*" element={<RoutesMainApp />}></Route>
 
@@ -34,7 +37,6 @@ const RoutesMainApp = () => {
           ></Route> */}
           {/* <Route path="student" element={<StudentDashBoardPage />} /> */}
         </Route>
-        <Route path="/projects" element={<Project />}></Route>
         <Route path="/files" element={<FilesPage />}></Route>
         <Route path="/chat" element={<ChatPage />}></Route>
       </Routes>
