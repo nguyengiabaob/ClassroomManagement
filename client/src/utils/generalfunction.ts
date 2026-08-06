@@ -2,6 +2,7 @@ import type { MenuSection } from "@/components/Layout/SideBar";
 import {
   AlertTriangle,
   Building,
+  Files,
   Home,
   ListTodo,
   Package,
@@ -15,6 +16,7 @@ export const defaultSections: MenuSection[] = [
     items: [
       { title: "Tổng quan", url: "/", icon: Home },
       { title: "Dự án", url: "/projects", icon: Building },
+      { title: "Hồ sơ & bản vẽ", url: "/files", icon: Files },
       { title: "Công việc", url: "/tasks", icon: ListTodo },
       { title: "Vấn đề", url: "/issues", icon: AlertTriangle },
     ],
