@@ -10,6 +10,25 @@ export interface userLoginData {
   role: string;
 }
 
+export interface googleLoginData {
+  authenticated: boolean;
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+}
+
+export interface currentUserData {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  role?: string;
+}
+
 export interface userRegister {
   name: string;
   email: string;
@@ -45,6 +64,15 @@ export const login = async (userName: string, password: string) =>
     userName: userName,
     password: password,
   });
+
+export const loginWithGoogle = async (credential: string) =>
+  await AxiosClient.post<googleLoginData>("/api/auth/google", {
+    token: credential,
+  });
+
+export const getCurrentUser = async () =>
+  await AxiosClient.get<currentUserData>("/api/auth/currentuser");
+
 export const forgetPassword = async (email: string) =>
   await AxiosClient.post<resultApiString>("/api/auth/forgetPassword", {
     email: email,

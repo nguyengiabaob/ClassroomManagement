@@ -20,17 +20,43 @@ import {
 import type { userDataRegister } from "../../models/userData.model";
 import {
   forgetPassword,
+  getCurrentUser,
   login,
+  loginWithGoogle,
   register,
   type userRegister,
 } from "./loginService";
 import { useNavigate } from "react-router";
+import { useDispatch } from "react-redux";
+import { saveUserlogined } from "@/redux/usersReducer";
 const { Title, Text } = Typography;
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: {
+            client_id: string;
+            callback: (response: { credential: string }) => void;
+          }) => void;
+          renderButton: (
+            element: HTMLElement,
+            options: Record<string, string | number>,
+          ) => void;
+        };
+      };
+    };
+  }
+}
+
 const LoginPage = () => {
   const navigation = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const [authMode, setAuthMode] = useState("login");
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const dispatch = useDispatch();
   //const [user, setUser] = useState<userDataModel | null>(null);
   useEffect(() => {
     const savedUser = localStorage.getItem("user_session");
@@ -38,6 +64,78 @@ const LoginPage = () => {
       //setUser(JSON.parse(savedUser));
     }
   }, []);
+
+  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
+  console.log(clientId);
+  useEffect(() => {
+    if (authMode !== "login") return;
+
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    if (!clientId) return;
+
+    const renderGoogleButton = () => {
+      const container = document.getElementById("google-login-button");
+      if (!container || !window.google) return;
+
+      window.google.accounts.id.initialize({
+        client_id: clientId,
+        callback: async ({ credential }) => {
+          setGoogleLoading(true);
+          try {
+            const { data } = await loginWithGoogle(credential);
+            localStorage.setItem("access_token", data.accessToken);
+            localStorage.setItem("refresh_token", data.refreshToken);
+            const { data: currentUser } = await getCurrentUser();
+            localStorage.setItem(
+              "user_session",
+              JSON.stringify({
+                ...currentUser,
+                authentication: data.authenticated,
+              }),
+            );
+            dispatch(saveUserlogined(currentUser));
+
+            message.success("Login with Google successful!");
+            navigation("/", { replace: true });
+          } catch {
+            message.error("Google login failed. Please try again.");
+          } finally {
+            setGoogleLoading(false);
+          }
+        },
+      });
+
+      container.replaceChildren();
+      window.google.accounts.id.renderButton(container, {
+        type: "standard",
+        theme: "outline",
+        size: "large",
+        text: "continue_with",
+        shape: "rectangular",
+        width: container.clientWidth || 400,
+      });
+    };
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src="https://accounts.google.com/gsi/client"]',
+    );
+    if (existingScript) {
+      if (window.google) renderGoogleButton();
+      else
+        existingScript.addEventListener("load", renderGoogleButton, {
+          once: true,
+        });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = renderGoogleButton;
+    document.head.appendChild(script);
+  }, [authMode, navigation]);
 
   const handleRegisterSubmit = async (values: userRegister) => {
     setLoading(true);
@@ -219,6 +317,20 @@ const LoginPage = () => {
                 Login
               </Button>
               <Divider>Or</Divider>
+              {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
+                <div
+                  id="google-login-button"
+                  className={
+                    googleLoading ? "pointer-events-none opacity-60" : ""
+                  }
+                  aria-busy={googleLoading}
+                />
+              ) : (
+                <Text type="danger" className="block text-center">
+                  Google login is not configured.
+                </Text>
+              )}
+              <Divider />
               <div className="text-center">
                 <Text type="secondary">Don't have an account? </Text>
                 <Button

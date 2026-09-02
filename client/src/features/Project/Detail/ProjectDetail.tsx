@@ -1,39 +1,24 @@
 import { useState } from "react";
-import { NavLink } from "react-router";
 import {
-  Bell,
   CalendarDays,
   ChevronRight,
-  CircleHelp,
-  FileText,
-  LayoutDashboard,
   MapPin,
-  Menu,
   Pencil,
-  Search,
-  Settings,
   Share2,
   TrendingUp,
   UsersRound,
-  WalletCards,
-  X,
 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import "./ProjectDetail.css";
-
-const navigation = [
-  { label: "Dashboard", icon: LayoutDashboard, to: "/" },
-  { label: "Site Management", icon: Menu, to: "/projects" },
-  { label: "Document Control", icon: FileText, to: "/files" },
-  { label: "Cost Control", icon: WalletCards, to: "/costs" },
-];
 
 const tabs = ["Tổng quan", "Công việc", "Vật tư", "Nhân sự", "Tài liệu"];
 
 export default function ProjectDetail() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Tổng quan");
-  const [searchQuery, setSearchQuery] = useState("");
 
   const handleExport = () => {
     const report = [
@@ -57,94 +42,13 @@ export default function ProjectDetail() {
 
   return (
     <div className="project-detail-app">
-      <header className="project-detail-header">
-        <button
-          type="button"
-          className="project-detail-mobile-menu"
-          aria-label="Mở menu"
-          onClick={() => setSidebarOpen(true)}
-        >
-          <Menu size={22} />
-        </button>
-
-        <NavLink to="/projects" className="project-detail-wordmark">
-          ConstructFriendly
-        </NavLink>
-
-        <div className="project-detail-header-actions">
-          <label className="project-detail-search">
-            <Search size={19} />
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Tìm kiếm tài liệu..."
-              aria-label="Tìm kiếm tài liệu"
-            />
-          </label>
-          <button type="button" aria-label="Thông báo">
-            <Bell size={20} />
-          </button>
-          <img
-            src="https://randomuser.me/api/portraits/women/44.jpg"
-            alt="Tài khoản người dùng"
-          />
-        </div>
-      </header>
-
-      {sidebarOpen && (
-        <button
-          type="button"
-          className="project-detail-overlay"
-          aria-label="Đóng menu"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      <aside className={`project-detail-sidebar ${sidebarOpen ? "is-open" : ""}`}>
-        <div className="project-detail-project-brand">
-          <span className="project-detail-project-mark" />
-          <div>
-            <strong>Project Alpha</strong>
-            <span>Site #1042</span>
-          </div>
-          <button type="button" aria-label="Đóng menu" onClick={() => setSidebarOpen(false)}>
-            <X size={21} />
-          </button>
-        </div>
-
-        <nav className="project-detail-nav" aria-label="Điều hướng dự án">
-          {navigation.map(({ label, icon: Icon, to }) => (
-            <NavLink
-              key={label}
-              to={to}
-              className={label === "Site Management" ? "active" : ""}
-              onClick={() => setSidebarOpen(false)}
-            >
-              <Icon size={20} strokeWidth={1.9} />
-              <span>{label}</span>
-            </NavLink>
-          ))}
-        </nav>
-
-        <nav className="project-detail-secondary-nav" aria-label="Trợ giúp">
-          <a href="#settings">
-            <Settings size={20} />
-            Settings
-          </a>
-          <a href="#support">
-            <CircleHelp size={20} />
-            Support
-          </a>
-        </nav>
-      </aside>
-
       <main className="project-detail-main">
         <section className="project-detail-content">
           <div className="project-detail-title-row">
             <div className="project-detail-title-copy">
               <div className="project-detail-badges">
-                <span>BF-2024-001</span>
-                <span>Đang thi công</span>
+                <Badge variant="secondary">BF-2024-001</Badge>
+                <Badge variant="outline">Đang thi công</Badge>
               </div>
               <h1>Skyline Tower - Quận 1</h1>
               <div className="project-detail-meta">
@@ -160,19 +64,19 @@ export default function ProjectDetail() {
             </div>
 
             <div className="project-detail-title-actions">
-              <button type="button" className="project-detail-edit-button">
+              <Button type="button" variant="outline" className="project-detail-edit-button">
                 <Pencil size={18} />
                 Chỉnh sửa
-              </button>
-              <button type="button" className="project-detail-export-button" onClick={handleExport}>
+              </Button>
+              <Button type="button" className="project-detail-export-button" onClick={handleExport}>
                 <Share2 size={18} />
                 Xuất báo cáo
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="project-detail-summary-grid">
-            <article className="project-detail-progress-card">
+            <Card className="project-detail-progress-card block gap-0 py-0">
               <div className="project-detail-card-title">
                 <h2>Tiến độ tổng thể</h2>
                 <span>
@@ -192,9 +96,7 @@ export default function ProjectDetail() {
                   <div>
                     <span>Thời gian đã trôi qua</span>
                     <strong>428 / 630 ngày</strong>
-                    <div className="project-detail-time-track">
-                      <span />
-                    </div>
+                    <Progress value={68} className="project-detail-time-track" indicatorClassName="project-detail-time-indicator" />
                   </div>
                   <div className="project-detail-budget">
                     <span>Ngân sách</span>
@@ -202,9 +104,9 @@ export default function ProjectDetail() {
                   </div>
                 </div>
               </div>
-            </article>
+            </Card>
 
-            <article className="project-detail-workforce-card">
+            <Card className="project-detail-workforce-card block gap-0 border-0 py-0 text-white">
               <div className="project-detail-workforce-title">
                 <h2>
                   <UsersRound size={21} />
@@ -224,20 +126,21 @@ export default function ProjectDetail() {
                 </div>
               </div>
 
-              <button type="button">Quản lý chấm công</button>
-            </article>
+              <Button type="button" variant="secondary">Quản lý chấm công</Button>
+            </Card>
           </div>
 
           <nav className="project-detail-tabs" aria-label="Nội dung dự án">
             {tabs.map((tab) => (
-              <button
+              <Button
                 key={tab}
                 type="button"
+                variant="ghost"
                 className={activeTab === tab ? "active" : ""}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
-              </button>
+              </Button>
             ))}
           </nav>
 

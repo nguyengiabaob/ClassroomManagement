@@ -7,9 +7,14 @@ import { Request, Response } from "express";
 import * as Crypto from "crypto";
 import { sendSetupPasswordEmail } from "./email.service";
 import { stat } from "fs";
+import { OAuth2Client } from "google-auth-library";
 
 @Injectable()
 export class authServices {
+  private readonly googleClient = new OAuth2Client(
+    process.env.GOOGLE_CLIENT_ID,
+  );
+
   constructor(
     private prisma: PrismaService,
     private jwt: JwtService,
@@ -53,6 +58,77 @@ export class authServices {
     });
   }
 
+  async loginWithGoogle(
+    credential: string | undefined,
+    req: Request,
+    res: Response,
+  ) {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    if (!clientId) {
+      return res.status(503).json({ message: "Google login is not configured" });
+    }
+    if (!credential) {
+      return res.status(400).json({ message: "Google credential is required" });
+    }
+
+    try {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken: credential,
+        audience: clientId,
+      });
+      const profile = ticket.getPayload();
+
+      if (!profile?.sub || !profile.email || !profile.email_verified) {
+        return res.status(401).json({ message: "Invalid Google account" });
+      }
+
+      let user = await this.prisma.user.findFirst({
+        where: {
+          OR: [{ ssoId: profile.sub }, { email: profile.email }],
+        },
+      });
+
+      if (user) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            ssoId: profile.sub,
+            isActive: true,
+            name: profile.name || user.name,
+          },
+        });
+      } else {
+        user = await this.prisma.user.create({
+          data: {
+            ssoId: profile.sub,
+            email: profile.email,
+            name: profile.name || profile.email,
+            isActive: true,
+          },
+        });
+      }
+
+      const tokens = this.generateTokens(user);
+      await this.prisma.session.create({
+        data: {
+          userId: user.id,
+          refreshToken: tokens.refreshToken,
+          userAgent: req.headers["user-agent"],
+          ip: req.ip,
+          expiredAt: new Date(Date.now() + 7 * 86400000),
+        },
+      });
+
+      return res.status(200).json({
+        authenticated: true,
+        ...tokens,
+        user: { id: user.id, name: user.name, email: user.email },
+      });
+    } catch {
+      return res.status(401).json({ message: "Google authentication failed" });
+    }
+  }
+
   generateTokens(user: any) {
     const payload = { sub: user.id, email: user.email };
 
@@ -83,7 +159,9 @@ export class authServices {
     return this.generateTokens(user);
   }
 
-  async logout(refreshToken: string) {
+  async logout(refreshToken?: string) {
+    if (!refreshToken) return;
+
     await this.prisma.session.deleteMany({
       where: { refreshToken },
     });

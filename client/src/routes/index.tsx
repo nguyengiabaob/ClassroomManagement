@@ -16,9 +16,6 @@ const RoutesApp = () => {
       <Route path="setup-password" element={<SetupPasswordPage />} />
       <Route element={<LoginPage />} path="/login"></Route>
       <Route element={<ManagedFields />} path="/managed-fields"></Route>
-      <Route element={<Projects />} path="/projects"></Route>
-      <Route element={<ProjectDetail />} path="/projects/:projectId"></Route>
-
       <Route path="*" element={<RoutesMainApp />}></Route>
 
       {/* <Route></Route> */}
@@ -38,6 +35,8 @@ const RoutesMainApp = () => {
           {/* <Route path="student" element={<StudentDashBoardPage />} /> */}
         </Route>
         <Route path="/files" element={<FilesPage />}></Route>
+        <Route path="/projects" element={<Projects />}></Route>
+        <Route path="/projects/:projectId" element={<ProjectDetail />}></Route>
         <Route path="/chat" element={<ChatPage />}></Route>
       </Routes>
     </MainLayout>

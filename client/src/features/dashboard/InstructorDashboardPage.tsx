@@ -3,13 +3,27 @@ import {
   ArrowRight,
   Banknote,
   BarChart3,
+  Building2,
   CloudSun,
   MapPin,
   MoreHorizontal,
   Plus,
+  Users,
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { useSelector } from "react-redux";
+
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import type { RootState } from "../../redux/store";
 
 type Project = {
@@ -39,7 +53,7 @@ const projects: Project[] = [
     status: "Đang thi công",
     statusTone: "green",
     progress: 82,
-    workers: "12 Kỹ sư đang có mặt",
+    workers: "12 kỹ sư đang có mặt",
     extra: 5,
     image: "tower",
   },
@@ -49,7 +63,7 @@ const projects: Project[] = [
     status: "Đang nghiệm thu",
     statusTone: "amber",
     progress: 95,
-    workers: "8 Chuyên gia nghiệm thu",
+    workers: "8 chuyên gia nghiệm thu",
     extra: 2,
     image: "mall",
   },
@@ -60,7 +74,7 @@ const upcomingTasks: UpcomingTask[] = [
     month: "T5",
     day: "25",
     title: "Họp điều phối thầu phụ",
-    detail: "09:00 - Văn phòng điều hành",
+    detail: "09:00 · Văn phòng điều hành",
     label: "Ưu tiên cao",
     tone: "amber",
   },
@@ -68,7 +82,7 @@ const upcomingTasks: UpcomingTask[] = [
     month: "T5",
     day: "25",
     title: "Kiểm tra an toàn Block A",
-    detail: "14:30 - Hiện trường",
+    detail: "14:30 · Hiện trường",
     label: "Thường kỳ",
     tone: "green",
   },
@@ -76,7 +90,7 @@ const upcomingTasks: UpcomingTask[] = [
     month: "T6",
     day: "26",
     title: "Báo cáo tuần cho CĐT",
-    detail: "16:00 - Trực tuyến",
+    detail: "16:00 · Trực tuyến",
     label: "Quan trọng",
     tone: "rust",
   },
@@ -85,9 +99,11 @@ const upcomingTasks: UpcomingTask[] = [
 const ProjectArtwork = ({ variant }: { variant: Project["image"] }) => (
   <div
     aria-hidden="true"
-    className={`relative h-[96px] w-[128px] shrink-0 overflow-hidden rounded-[14px] bg-slate-900 ${
-      variant === "tower" ? "from-emerald-950 to-teal-700" : "from-slate-900 to-teal-800"
-    } bg-gradient-to-br`}
+    className={`relative h-28 w-full shrink-0 overflow-hidden rounded-xl bg-gradient-to-br sm:h-24 sm:w-32 ${
+      variant === "tower"
+        ? "from-emerald-950 to-teal-700"
+        : "from-slate-900 to-teal-800"
+    }`}
   >
     <div className="absolute inset-x-0 bottom-0 h-[28%] bg-black/25" />
     {variant === "tower" ? (
@@ -126,29 +142,31 @@ const MetricCard = ({
   const green = tone === "green";
 
   return (
-    <article className="relative min-h-[230px] overflow-hidden rounded-[18px] border border-slate-200/80 bg-white p-6 shadow-[0_9px_30px_rgba(30,41,59,0.045)]">
-      <div className="mb-5 flex items-start justify-between">
-        <div
-          className={`grid h-12 w-12 place-items-center rounded-xl ${
-            green ? "bg-[#e5f1ee] text-[#087669]" : "bg-[#f5eee6] text-[#936000]"
-          }`}
-        >
-          {icon}
+    <Card className="gap-0 rounded-2xl border-slate-200/80 py-0 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+      <CardContent className="p-6">
+        <div className="mb-5 flex items-start justify-between">
+          <div
+            className={`grid size-12 place-items-center rounded-xl ${green ? "bg-emerald-50 text-[#087669]" : "bg-amber-50 text-[#936000]"}`}
+          >
+            {icon}
+          </div>
+          <span
+            className={`text-2xl font-bold ${green ? "text-[#087669]" : "text-[#815600]"}`}
+          >
+            {value}
+          </span>
         </div>
-        <span className={`text-[26px] font-bold ${green ? "text-[#087669]" : "text-[#815600]"}`}>
-          {value}
-        </span>
-      </div>
-
-      <h2 className="text-[20px] font-bold leading-tight text-[#222027]">{title}</h2>
-      <p className="mt-2 min-h-10 text-[14px] leading-5 text-slate-500">{description}</p>
-      <div className="mt-4 h-[10px] overflow-hidden rounded-full bg-[#ebedf3]">
-        <div
-          className={`h-full rounded-full ${green ? "bg-[#087669]" : "bg-[#966100]"}`}
-          style={{ width: `${percent}%` }}
+        <h2 className="text-lg font-bold text-slate-900">{title}</h2>
+        <p className="mt-2 min-h-10 text-sm leading-5 text-slate-500">
+          {description}
+        </p>
+        <Progress
+          value={percent}
+          className="mt-4 h-2.5 bg-slate-100"
+          indicatorClassName={green ? "bg-[#087669]" : "bg-[#966100]"}
         />
-      </div>
-    </article>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -157,168 +175,266 @@ const InstructorDashboardPage = () => {
   const firstName = user?.name?.trim().split(/\s+/).at(-1) || "Quân";
 
   return (
-    <main className="min-h-full bg-[#faf8ff] px-1 pb-8 text-left text-[#222027] md:px-0">
-      <section className="mb-8 grid items-center gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div>
-          <h1 className="text-[30px] font-bold tracking-[-0.7px] text-[#1f1d24] md:text-[34px]">
-            Chào buổi sáng, {firstName}
-          </h1>
-          <p className="mt-1 text-[15px] text-slate-500 md:text-[16px]">
-            Hôm nay là Thứ Tư, ngày 24 tháng 5 năm 2024. Mọi thứ đang trong tầm kiểm soát.
-          </p>
-        </div>
-
-        <article className="flex min-h-[105px] items-center rounded-[18px] border border-slate-200/80 bg-white px-5 py-4 shadow-[0_9px_30px_rgba(30,41,59,0.04)]">
-          <div className="flex min-w-[185px] items-center gap-3 border-r border-slate-200 pr-5">
-            <CloudSun className="h-9 w-9 text-[#f5a300]" strokeWidth={1.8} />
-            <div>
-              <p className="text-[13px] font-semibold uppercase tracking-wide text-slate-400">Thời tiết</p>
-              <p className="mt-0.5 text-[20px] font-semibold text-[#26232a]">32°C, Nắng nhẹ</p>
-            </div>
+    <main className="min-h-screen w-full bg-[#f7f7f4] text-slate-900">
+      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+        <header className="mb-8 flex flex-col justify-between gap-5 md:flex-row md:items-end">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.18em] text-[#087669]">
+              Tổng quan công trường
+            </p>
+            <h1 className="text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
+              Chào buổi sáng, {firstName}!
+            </h1>
+            <p className="mt-2 text-sm text-slate-500">
+              Theo dõi tiến độ và quản lý công việc hôm nay.
+            </p>
           </div>
-          <div className="pl-5 text-[13px] leading-5 text-slate-500">
-            <p>Độ ẩm: 65%</p>
-            <p className="font-medium text-[#087669]">Điều kiện lý tưởng để đổ bê tông</p>
-          </div>
-        </article>
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-3">
-        <MetricCard
-          icon={<BarChart3 size={22} />}
-          value="75%"
-          title="Tiến độ Tổng thể"
-          description="Dự kiến hoàn thành đúng hạn vào T9/2024"
-          percent={75}
-          tone="green"
-        />
-        <MetricCard
-          icon={<Banknote size={23} />}
-          value="60%"
-          title="Ngân sách Sử dụng"
-          description="Đã giải ngân: 4.2 tỷ / 7 tỷ VND"
-          percent={60}
-          tone="amber"
-        />
-        <article className="relative min-h-[230px] overflow-hidden rounded-[18px] bg-[#b95f3d] p-6 text-white shadow-[0_10px_30px_rgba(150,72,42,0.18)]">
-          <div className="mb-5 flex items-start justify-between">
-            <div className="grid h-12 w-12 place-items-center rounded-xl bg-white/14">
-              <AlertTriangle size={22} />
-            </div>
-            <span className="text-[26px] font-bold">03</span>
-          </div>
-          <h2 className="text-[20px] font-bold">Cảnh báo An toàn</h2>
-          <p className="mt-2 text-[14px] text-white/80">Cần kiểm tra ngay tại khu vực Block B</p>
-          <button
-            type="button"
-            className="mt-6 flex h-[34px] w-full items-center justify-center rounded-xl bg-white px-4 text-[14px] font-semibold text-[#9b4e32] transition hover:bg-orange-50"
-          >
-            Xem Chi Tiết
-          </button>
-          <AlertTriangle className="absolute -bottom-3 right-4 h-28 w-28 text-white/[0.055]" strokeWidth={1.3} />
-        </article>
-      </section>
-
-      <section className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,2.1fr)_300px]">
-        <div>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[21px] font-bold">Công trường Đang Hoạt Động</h2>
-            <button type="button" className="flex items-center gap-1 text-[14px] font-semibold text-[#087669]">
-              Xem tất cả <ArrowRight size={15} />
-            </button>
-          </div>
-
-          <div className="space-y-4">
-            {projects.map((project) => (
-              <article
-                key={project.name}
-                className="grid min-h-[130px] items-center gap-4 rounded-[18px] border border-slate-200/80 bg-white p-4 shadow-[0_9px_30px_rgba(30,41,59,0.04)] sm:grid-cols-[128px_minmax(0,1fr)_auto]"
-              >
-                <ProjectArtwork variant={project.image} />
-                <div className="min-w-0 self-stretch py-1">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div>
-                      <h3 className="text-[16px] font-bold leading-5">{project.name}</h3>
-                      <p className="mt-1 flex items-center gap-1 text-[13px] text-slate-500">
-                        <MapPin size={14} /> {project.location}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-[11px] font-bold uppercase leading-none ${
-                        project.statusTone === "green"
-                          ? "bg-[#e6f3f0] text-[#087669]"
-                          : "bg-[#fff0d5] text-[#936000]"
-                      }`}
-                    >
-                      {project.status}
-                    </span>
-                  </div>
-                  <div className="mt-5 flex items-center gap-3 text-[12px] text-slate-500">
-                    <div className="flex -space-x-2">
-                      <span className="h-6 w-6 rounded-full border-2 border-white bg-slate-200" />
-                      <span className="h-6 w-6 rounded-full border-2 border-white bg-slate-300" />
-                      <span className="grid h-6 w-6 place-items-center rounded-full border-2 border-white bg-[#0b8b7d] text-[9px] font-bold text-white">
-                        +{project.extra}
-                      </span>
-                    </div>
-                    <span>{project.workers}</span>
-                  </div>
-                </div>
-                <div className="flex min-w-[82px] flex-col items-center justify-center border-l border-slate-200 px-2 py-3 text-center">
-                  <span className="text-[11px] text-slate-500">Hoàn thành</span>
-                  <strong className={`mt-1 text-[17px] ${project.statusTone === "green" ? "text-[#087669]" : "text-[#875b00]"}`}>
-                    {project.progress}%
-                  </strong>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <aside>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-[21px] font-bold">Công việc Sắp tới</h2>
-            <button type="button" aria-label="Tùy chọn công việc" className="grid h-8 w-8 place-items-center rounded-lg hover:bg-white">
-              <MoreHorizontal size={21} />
-            </button>
-          </div>
-
-          <div className="overflow-hidden rounded-[18px] border border-slate-200/80 bg-white shadow-[0_9px_30px_rgba(30,41,59,0.04)]">
-            {upcomingTasks.map((task, index) => (
-              <div
-                key={`${task.title}-${task.day}`}
-                className={`flex gap-4 p-4 ${index !== upcomingTasks.length - 1 ? "border-b border-slate-100" : ""}`}
-              >
-                <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[#e7f1ef] text-center text-[#087669]">
-                  <div className="leading-none">
-                    <span className="block text-[11px] font-semibold">{task.month}</span>
-                    <strong className="mt-1 block text-[17px]">{task.day}</strong>
-                  </div>
-                </div>
-                <div className="min-w-0">
-                  <h3 className="truncate text-[15px] font-bold">{task.title}</h3>
-                  <p className="mt-0.5 text-[12px] text-slate-500">{task.detail}</p>
-                  <div className="mt-2 flex items-center gap-2 text-[9px] font-semibold uppercase tracking-[1px] text-slate-500">
-                    <span
-                      className={`h-2 w-2 rounded-full ${
-                        task.tone === "amber" ? "bg-[#a86b00]" : task.tone === "green" ? "bg-[#087669]" : "bg-[#9b4e32]"
-                      }`}
-                    />
-                    {task.label}
-                  </div>
-                </div>
+          <Card className="w-full gap-0 rounded-2xl border-slate-200/80 py-0 shadow-none md:w-auto md:min-w-72">
+            <CardContent className="flex items-center gap-4 p-4">
+              <div className="grid size-11 place-items-center rounded-xl bg-amber-50 text-amber-600">
+                <CloudSun size={23} />
               </div>
-            ))}
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-slate-500">
+                  TP. Hồ Chí Minh
+                </p>
+                <p className="font-bold text-slate-900">32°C · Nắng nhẹ</p>
+              </div>
+              <div className="border-l border-slate-200 pl-4 text-right">
+                <p className="text-xs text-slate-500">Độ ẩm</p>
+                <p className="font-semibold">65%</p>
+              </div>
+            </CardContent>
+          </Card>
+        </header>
+
+        <section
+          aria-label="Chỉ số tổng quan"
+          className="grid gap-4 lg:grid-cols-3"
+        >
+          <MetricCard
+            icon={<BarChart3 size={22} />}
+            value="75%"
+            title="Tiến độ tổng thể"
+            description="Dự kiến hoàn thành đúng hạn vào T9/2024"
+            percent={75}
+            tone="green"
+          />
+          <MetricCard
+            icon={<Banknote size={23} />}
+            value="60%"
+            title="Ngân sách sử dụng"
+            description="Đã giải ngân: 4.2 tỷ / 7 tỷ VND"
+            percent={60}
+            tone="amber"
+          />
+          <Card className="relative gap-0 overflow-hidden rounded-2xl border-0 bg-[#b95f3d] py-0 text-white shadow-[0_10px_30px_rgba(150,72,42,0.18)]">
+            <CardContent className="relative z-10 p-6">
+              <div className="mb-5 flex items-start justify-between">
+                <div className="grid size-12 place-items-center rounded-xl bg-white/15">
+                  <AlertTriangle size={22} />
+                </div>
+                <span className="text-2xl font-bold">03</span>
+              </div>
+              <h2 className="text-lg font-bold">Cảnh báo an toàn</h2>
+              <p className="mt-2 text-sm text-white/80">
+                Cần kiểm tra ngay tại khu vực Block B
+              </p>
+              <Button className="mt-5 h-9 w-full bg-white text-[#9b4e32] hover:bg-orange-50">
+                Xem chi tiết
+              </Button>
+            </CardContent>
+            <AlertTriangle
+              className="absolute -bottom-4 right-3 size-28 text-white/[0.06]"
+              strokeWidth={1.3}
+            />
+          </Card>
+        </section>
+
+        <section className="mt-8 grid items-start gap-8 xl:grid-cols-[minmax(0,2fr)_340px]">
+          <div>
+            <div className="mb-4 flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold">
+                  Công trường đang hoạt động
+                </h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  Các dự án cần theo dõi trong hôm nay
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                className="text-[#087669] hover:bg-emerald-50 hover:text-[#087669]"
+              >
+                Xem tất cả <ArrowRight data-icon="inline-end" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              {projects.map((project) => (
+                <Card
+                  key={project.name}
+                  className="gap-0 rounded-2xl border-slate-200/80 py-0 shadow-[0_8px_30px_rgba(15,23,42,0.04)]"
+                >
+                  <CardContent className="grid gap-4 p-4 sm:grid-cols-[128px_minmax(0,1fr)] lg:grid-cols-[128px_minmax(0,1fr)_96px] lg:items-center">
+                    <ProjectArtwork variant={project.image} />
+                    <div className="min-w-0 py-1">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div>
+                          <h3 className="font-bold leading-5 text-slate-900">
+                            {project.name}
+                          </h3>
+                          <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
+                            <MapPin size={14} /> {project.location}
+                          </p>
+                        </div>
+                        <Badge
+                          className={
+                            project.statusTone === "green"
+                              ? "border-transparent bg-emerald-50 text-[#087669]"
+                              : "border-transparent bg-amber-50 text-[#936000]"
+                          }
+                        >
+                          {project.status}
+                        </Badge>
+                      </div>
+                      <div className="mt-5 flex items-center gap-3 text-xs text-slate-500">
+                        <div className="flex -space-x-2">
+                          <Avatar className="size-7 border-2 border-white">
+                            <AvatarFallback className="bg-slate-200 text-[9px] font-semibold">
+                              NK
+                            </AvatarFallback>
+                          </Avatar>
+                          <Avatar className="size-7 border-2 border-white">
+                            <AvatarFallback className="bg-slate-300 text-[9px] font-semibold">
+                              TA
+                            </AvatarFallback>
+                          </Avatar>
+                          <Avatar className="size-7 border-2 border-white">
+                            <AvatarFallback className="bg-[#087669] text-[9px] font-bold text-white">
+                              +{project.extra}
+                            </AvatarFallback>
+                          </Avatar>
+                        </div>
+                        <span>{project.workers}</span>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between border-t border-slate-100 pt-4 lg:h-20 lg:flex-col lg:justify-center lg:border-l lg:border-t-0 lg:pt-0">
+                      <span className="text-xs text-slate-500">Hoàn thành</span>
+                      <strong
+                        className={
+                          project.statusTone === "green"
+                            ? "text-lg text-[#087669]"
+                            : "text-lg text-[#875b00]"
+                        }
+                      >
+                        {project.progress}%
+                      </strong>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            <Card className="mt-4 gap-0 rounded-2xl border-dashed border-slate-300 bg-transparent py-0 shadow-none">
+              <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="grid size-10 place-items-center rounded-xl bg-white text-[#087669] shadow-sm">
+                    <Building2 size={20} />
+                  </div>
+                  <div>
+                    <p className="font-semibold">12 dự án đang quản lý</p>
+                    <p className="text-xs text-slate-500">
+                      4 dự án cần cập nhật tiến độ tuần này
+                    </p>
+                  </div>
+                </div>
+                <Button variant="outline" className="border-slate-200 bg-white">
+                  Quản lý dự án
+                </Button>
+              </CardContent>
+            </Card>
           </div>
 
-          <button
-            type="button"
-            className="mt-4 flex h-[58px] w-full items-center justify-center gap-3 rounded-[18px] border-2 border-dashed border-slate-300 bg-transparent text-[15px] font-semibold text-slate-600 transition hover:border-[#087669] hover:bg-white hover:text-[#087669]"
-          >
-            <Plus size={20} /> Thêm công việc
-          </button>
-        </aside>
-      </section>
+          <aside>
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold">Công việc sắp tới</h2>
+                <p className="mt-1 text-sm text-slate-500">
+                  3 công việc hôm nay
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                aria-label="Tùy chọn công việc"
+              >
+                <MoreHorizontal />
+              </Button>
+            </div>
+
+            <Card className="gap-0 overflow-hidden rounded-2xl border-slate-200/80 py-0 shadow-[0_8px_30px_rgba(15,23,42,0.04)]">
+              {upcomingTasks.map((task, index) => (
+                <div
+                  key={`${task.title}-${task.day}`}
+                  className={`flex gap-4 p-4 ${index !== upcomingTasks.length - 1 ? "border-b border-slate-100" : ""}`}
+                >
+                  <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-emerald-50 text-center text-[#087669]">
+                    <div className="leading-none">
+                      <span className="block text-[10px] font-semibold uppercase">
+                        {task.month}
+                      </span>
+                      <strong className="mt-1 block text-base">
+                        {task.day}
+                      </strong>
+                    </div>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-sm font-bold">{task.title}</h3>
+                    <p className="mt-1 text-xs text-slate-500">{task.detail}</p>
+                    <div className="mt-2 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                      <span
+                        className={`size-2 rounded-full ${task.tone === "amber" ? "bg-amber-600" : task.tone === "green" ? "bg-[#087669]" : "bg-[#9b4e32]"}`}
+                      />
+                      {task.label}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </Card>
+
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4 h-14 w-full border-2 border-dashed border-slate-300 bg-transparent text-slate-600 hover:border-[#087669] hover:bg-white hover:text-[#087669]"
+            >
+              <Plus /> Thêm công việc
+            </Button>
+
+            <Card className="mt-4 gap-0 rounded-2xl border-emerald-100 bg-emerald-50/60 py-0 shadow-none">
+              <CardHeader className="flex-row items-center gap-3 p-4 pb-2">
+                <div className="grid size-9 place-items-center rounded-lg bg-white text-[#087669]">
+                  <Users size={18} />
+                </div>
+                <div>
+                  <CardTitle className="text-sm">Nhân sự hôm nay</CardTitle>
+                  <CardDescription className="mt-1 text-xs">
+                    Tỷ lệ có mặt tại công trường
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="p-4 pt-2">
+                <div className="mb-2 flex items-end justify-between">
+                  <strong className="text-2xl text-[#087669]">92%</strong>
+                  <span className="text-xs text-slate-500">46 / 50 người</span>
+                </div>
+                <Progress value={92} indicatorClassName="bg-[#087669]" />
+              </CardContent>
+            </Card>
+          </aside>
+        </section>
+      </div>
     </main>
   );
 };

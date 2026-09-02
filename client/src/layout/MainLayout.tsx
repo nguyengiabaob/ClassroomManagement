@@ -1,96 +1,75 @@
-import { BellOutlined, LogoutOutlined } from "@ant-design/icons";
-import {
-  Avatar,
-  Badge,
-  Button,
-  Divider,
-  Layout,
-  Space,
-  Typography,
-} from "antd";
+import { Layout } from "antd";
 import Sider from "antd/es/layout/Sider";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
+import AppHeader from "@/components/Layout/Header";
+import AppSideBar from "@/components/Layout/SideBar";
 import { saveUserlogined } from "../redux/usersReducer";
 import type { RootState } from "../redux/store";
-import AppSideBar from "@/components/Layout/SideBar";
+import { logout } from "../shared/auth.api";
 
 interface MainLayoutProps {
   children: React.ReactNode;
 }
 const MainLayout = (props: MainLayoutProps) => {
   const { children } = props;
-  const { Header, Content, Footer } = Layout;
-  const { Title, Text } = Typography;
+  const { Content, Footer } = Layout;
   const user = useSelector((state: RootState) => state.users);
-  const [view, setView] = useState("dashboard");
+  const [view, setView] = useState("Quản lý Công trường");
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const handleLogout = () => {
-    dispatch(saveUserlogined(null));
-    localStorage.removeItem("user_session");
-    navigate("/login");
-    setView("dashboard");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } finally {
+      dispatch(saveUserlogined(null));
+      localStorage.removeItem("user_session");
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      navigate("/login", { replace: true });
+      setView("dashboard");
+    }
   };
   return (
     <Layout className="h-screen overflow-hidden">
       <Sider
         breakpoint="lg"
         collapsedWidth="0"
-        width={250}
+        width={280}
         theme="light"
-        className="shadow-lg z-10 relative"
+        style={{ backgroundColor: "#ffffff" }}
+        className="relative z-10 border-r border-slate-100 shadow-none"
       >
-        <div className="h-full overflow-y-auto pb-20">
-          <AppSideBar />
-        </div>
-        <div className="absolute bottom-6 w-full px-6 bg-white pt-2">
-          <Button
-            type="text"
-            danger
-            block
-            icon={<LogoutOutlined />}
-            onClick={handleLogout}
-            className="flex items-center justify-center hover:bg-red-50 rounded-lg h-10"
-          >
-            Đăng xuất
-          </Button>
-        </div>
+        <AppSideBar
+          user={
+            user
+              ? {
+                  name: user.name,
+                  role: user.role === "instructor" ? "Site Superintendent" : "Học viên",
+                  avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+                }
+              : undefined
+          }
+          onLogout={handleLogout}
+        />
       </Sider>
 
       <Layout className="bg-slate-50 flex flex-col">
-        <Header
-          style={{ backgroundColor: "#0015291a" }}
-          className="bg-white px-8 flex items-center justify-between shadow-sm h-16 shrink-0 z-20"
-        >
-          <Title level={5} style={{ margin: 0, color: "#64748b" }}>
-            {view === "dashboard" ? "DashBoard" : view.toUpperCase()}
-          </Title>
-          <Space size="middle">
-            <Badge count={5} size="small">
-              <Button
-                type="text"
-                icon={<BellOutlined className="text-xl text-slate-400" />}
-              />
-            </Badge>
-            <Divider type="vertical" />
-            <Space className="cursor-pointer hover:bg-slate-50 px-2 py-1 rounded-lg transition-all">
-              <Avatar
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix"
-                className="bg-blue-100"
-              />
-              <div className="hidden md:block leading-none">
-                <Text strong className="block text-sm">
-                  {user?.name}
-                </Text>
-                <Text type="secondary" className="text-xs">
-                  {user?.role === "instructor" ? "Giảng viên" : "Học viên"}
-                </Text>
-              </div>
-            </Space>
-          </Space>
-        </Header>
+        <AppHeader
+          title={view}
+          notificationCount={5}
+          user={
+            user
+              ? {
+                  name: user.name,
+                  role: user.role === "instructor" ? "Giảng viên" : "Học viên",
+                  avatarUrl: "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+                }
+              : undefined
+          }
+          onNavigationChange={(item) => setView(item)}
+        />
 
         <Content className="p-4 md:p-8 flex-1 overflow-y-auto">
           <div className="max-w-8xl mx-auto h-full">{children}</div>

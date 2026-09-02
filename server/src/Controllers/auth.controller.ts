@@ -129,6 +129,22 @@ export class authController {
     //   authenticated: true,
     // });
   }
+
+  @Post("google")
+  loginWithGoogle(
+    @Body() body: { credential?: string },
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    return this.authService.loginWithGoogle(body.credential, req, res);
+  }
+
+  @Post("logout")
+  async logout(@Body() body: { refreshToken?: string }) {
+    await this.authService.logout(body.refreshToken);
+    return { message: "Logged out successfully" };
+  }
+
   @Post("resgisterUser")
   registerUser(@Req() req: Request, @Res() res: Response) {
     console.log("dsadsad", req);
