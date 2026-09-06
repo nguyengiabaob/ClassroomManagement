@@ -173,6 +173,7 @@ const MetricCard = ({
 const InstructorDashboardPage = () => {
   const user = useSelector((state: RootState) => state.users);
   const firstName = user?.name?.trim().split(/\s+/).at(-1) || "Quân";
+  console.log("dsadasd", user);
 
   return (
     <main className="min-h-screen w-full bg-[#f7f7f4] text-slate-900">

@@ -1,3 +1,4 @@
+import axios from "axios";
 import { AxiosClient } from "../../shared/axios.client";
 export interface resultApiString {
   message: string;
@@ -27,6 +28,13 @@ export interface currentUserData {
   email: string;
   phone?: string;
   role?: string;
+}
+
+export interface checkTokenData {
+  accessToken: string;
+  refreshToken: string;
+  authenticated?: boolean;
+  success?: boolean;
 }
 
 export interface userRegister {
@@ -72,6 +80,21 @@ export const loginWithGoogle = async (credential: string) =>
 
 export const getCurrentUser = async () =>
   await AxiosClient.get<currentUserData>("/api/auth/currentuser");
+
+export const checkToken = async () => {
+  const accessToken = localStorage.getItem("access_token");
+  const refreshToken = localStorage.getItem("refresh_token");
+
+  const { data } = await AxiosClient.post<checkTokenData>(
+    `api/auth/check-token`,
+    {
+      accessToken,
+      refreshToken,
+    },
+  );
+
+  return data;
+};
 
 export const forgetPassword = async (email: string) =>
   await AxiosClient.post<resultApiString>("/api/auth/forgetPassword", {
