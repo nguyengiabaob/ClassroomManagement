@@ -23,7 +23,8 @@ export class AxiosClient {
   static init() {
     if (!AxiosClient.instance) {
       AxiosClient.instance = axios.create({
-        baseURL: "http://localhost:8080",
+        //baseURL: "http://localhost:8080",
+        baseURL: "https://techserver.longdainam.com",
         headers: {
           "Content-Type": "application/json",
         },
