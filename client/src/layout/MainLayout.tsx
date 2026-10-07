@@ -1,5 +1,3 @@
-import { Layout } from "antd";
-import Sider from "antd/es/layout/Sider";
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
@@ -14,7 +12,6 @@ interface MainLayoutProps {
 }
 const MainLayout = (props: MainLayoutProps) => {
   const { children } = props;
-  const { Content, Footer } = Layout;
   const user = useSelector((state: RootState) => state.users);
   const [view, setView] = useState("Quản lý Công trường");
   const dispatch = useDispatch();
@@ -32,15 +29,8 @@ const MainLayout = (props: MainLayoutProps) => {
     }
   };
   return (
-    <Layout className="h-screen overflow-hidden">
-      <Sider
-        breakpoint="lg"
-        collapsedWidth="0"
-        width={280}
-        theme="light"
-        style={{ backgroundColor: "#ffffff" }}
-        className="relative z-10 border-r border-slate-100 shadow-none"
-      >
+    <div className="flex h-screen overflow-hidden">
+      <aside className="relative z-10 hidden w-[280px] shrink-0 border-r border-slate-100 bg-white shadow-none lg:block">
         <AppSideBar
           user={
             user
@@ -53,9 +43,9 @@ const MainLayout = (props: MainLayoutProps) => {
           }
           onLogout={handleLogout}
         />
-      </Sider>
+      </aside>
 
-      <Layout className="bg-slate-50 flex flex-col">
+      <div className="flex min-w-0 flex-1 flex-col bg-slate-50">
         <AppHeader
           title={view}
           notificationCount={5}
@@ -71,14 +61,14 @@ const MainLayout = (props: MainLayoutProps) => {
           onNavigationChange={(item) => setView(item)}
         />
 
-        <Content className="p-4 md:p-8 flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto p-4 md:p-8">
           <div className="max-w-8xl mx-auto h-full">{children}</div>
-        </Content>
-        <Footer className="text-center text-slate-400 py-6 shrink-0">
+        </main>
+        <footer className="shrink-0 py-6 text-center text-slate-400">
           Skipli Classroom Management System ©2024
-        </Footer>
-      </Layout>
-    </Layout>
+        </footer>
+      </div>
+    </div>
   );
 };
 

@@ -128,9 +128,9 @@
 }
 
 .login-content > *,
-.auth-card .ant-form,
-.auth-card .ant-form-item,
-.auth-card .ant-input-affix-wrapper {
+.auth-form,
+.auth-field,
+.auth-input {
   min-width: 0;
 }
 
@@ -188,32 +188,50 @@
   font-size: 15px;
 }
 
-.auth-card .ant-form-item { margin-bottom: 18px; }
-.auth-card .ant-form-item-label { padding-bottom: 6px; }
+.auth-form,
+.auth-field {
+  display: grid;
+}
 
-.auth-card .ant-form-item-label > label {
+.auth-form { gap: 18px; }
+.auth-field { gap: 6px; }
+
+.auth-field > label {
   color: #14223b;
   font-size: 14px;
   font-weight: 700;
 }
 
-.auth-card .ant-input-affix-wrapper {
+.auth-input {
+  display: flex;
+  align-items: center;
   min-height: 52px;
   padding-inline: 14px;
-  border-color: #c8d3e1;
+  border: 1px solid #c8d3e1;
   border-radius: 9px;
-  box-shadow: none;
+  background: #fff;
+  transition: border-color 150ms, box-shadow 150ms;
 }
 
-.auth-card .ant-input-affix-wrapper:hover,
-.auth-card .ant-input-affix-wrapper-focused { border-color: var(--teal); }
+.auth-input:focus-within {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px rgba(15, 156, 145, 0.12);
+}
 
-.auth-card .ant-input-prefix {
+.auth-input > svg {
+  flex: none;
   margin-right: 12px;
   color: #91a4bd;
 }
 
-.auth-card .ant-input { font-size: 15px; }
+.auth-input input {
+  height: 50px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  font-size: 15px;
+  box-shadow: none !important;
+}
 
 .form-options {
   display: flex;
@@ -231,11 +249,16 @@
   cursor: pointer;
 }
 
-.remember input {
+.remember [data-slot="checkbox"] {
   width: 18px;
   height: 18px;
   margin: 0;
-  accent-color: var(--teal);
+  border-color: #b7c4d1;
+}
+
+.remember [data-slot="checkbox"][data-checked] {
+  border-color: var(--teal);
+  background: var(--teal);
 }
 
 .text-button,
@@ -248,7 +271,7 @@
   font-weight: 700;
 }
 
-.login-submit.ant-btn {
+.login-submit {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -262,11 +285,20 @@
   box-shadow: 0 8px 16px rgba(15, 156, 145, 0.24);
 }
 
-.login-submit.ant-btn:hover { background: #0b897f !important; }
+.login-submit:hover { background: #0b897f !important; }
 
-.auth-card .ant-divider {
+.auth-divider {
+  position: relative;
+  display: grid;
+  place-items: center;
   margin: 20px 0 13px;
+}
+
+.auth-divider span {
+  position: absolute;
+  padding: 0 12px;
   color: #8a9ab0;
+  background: #fafbfc;
   font-size: 12px;
   font-weight: 600;
 }

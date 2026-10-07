@@ -1,10 +1,10 @@
 import { useMemo, useState } from "react"
 import { MapPin, Plus, Search, SlidersHorizontal } from "lucide-react"
 import { Link } from "react-router"
+import { toast } from "sonner"
 
+import AddProjectModal, { type NewProjectValues, type ProjectStatus } from "./AddProjectModal"
 import "./Projects.css"
-
-type ProjectStatus = "Đang thi công" | "Lập kế hoạch" | "Hoàn thành"
 
 type ProjectItem = {
   id: string
@@ -19,7 +19,7 @@ type ProjectItem = {
   rightValue: string
 }
 
-const projects: ProjectItem[] = [
+const initialProjects: ProjectItem[] = [
   {
     id: "BF-2024-001",
     name: "Skyline Tower",
@@ -117,6 +117,8 @@ function ProjectCard({ project }: { project: ProjectItem }) {
 export default function Projects() {
   const [query] = useState("")
   const [status, setStatus] = useState<"Tất cả" | ProjectStatus>("Tất cả")
+  const [projects, setProjects] = useState<ProjectItem[]>(initialProjects)
+  const [isCreateOpen, setIsCreateOpen] = useState(false)
 
   const visibleProjects = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase("vi")
@@ -129,10 +131,26 @@ export default function Projects() {
 
       return matchesStatus && matchesQuery
     })
-  }, [query, status])
+  }, [projects, query, status])
 
-  const openCreateDialog = () => {
-    window.alert("Biểu mẫu tạo dự án mới sẽ được mở tại đây.")
+  const createProject = (values: NewProjectValues) => {
+    setProjects((currentProjects) => [
+      ...currentProjects,
+      {
+        id: values.id.trim().toUpperCase(),
+        name: values.name.trim(),
+        location: values.location.trim(),
+        status: values.status,
+        progress: values.progress,
+        image: values.image?.trim() || "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1000&q=85",
+        leftLabel: "Ngân sách dự kiến",
+        leftValue: `${new Intl.NumberFormat("vi-VN").format(values.budget)} VNĐ`,
+        rightLabel: "Nhân lực dự kiến",
+        rightValue: `${values.teamSize} người`,
+      },
+    ])
+    setIsCreateOpen(false)
+    toast.success("Đã tạo dự án mới")
   }
 
   return (
@@ -155,7 +173,7 @@ export default function Projects() {
                   <option value="Hoàn thành">Hoàn thành</option>
                 </select>
               </label>
-              <button type="button" className="projects-create-button" onClick={openCreateDialog}>
+              <button type="button" className="projects-create-button" onClick={() => setIsCreateOpen(true)}>
                 <Plus size={19} />
                 Thêm dự án mới
               </button>
@@ -166,7 +184,7 @@ export default function Projects() {
             {visibleProjects.slice(0, 3).map((project) => <ProjectCard key={project.id} project={project} />)}
 
             {!query && status === "Tất cả" && (
-              <button type="button" className="projects-add-card" onClick={openCreateDialog}>
+              <button type="button" className="projects-add-card" onClick={() => setIsCreateOpen(true)}>
                 <span className="projects-add-icon"><Plus size={32} strokeWidth={1.8} /></span>
                 <strong>Khởi tạo dự án mới</strong>
                 <span>Thiết lập các mốc tiến độ<br />và ngân sách cho công trình mới.</span>
@@ -185,10 +203,17 @@ export default function Projects() {
           )}
         </section>
 
-        <button type="button" className="projects-floating-create" aria-label="Tạo dự án mới" onClick={openCreateDialog}>
+        <button type="button" className="projects-floating-create" aria-label="Tạo dự án mới" onClick={() => setIsCreateOpen(true)}>
           <Plus size={31} />
         </button>
       </main>
+
+      <AddProjectModal
+        open={isCreateOpen}
+        existingIds={projects.map((project) => project.id)}
+        onCancel={() => setIsCreateOpen(false)}
+        onCreate={createProject}
+      />
     </div>
   )
 }

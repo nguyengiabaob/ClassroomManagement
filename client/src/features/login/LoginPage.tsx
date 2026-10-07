@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Button, Divider, Form, Input, message } from "antd";
+import { type FormEvent, useEffect, useState } from "react";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,14 +18,18 @@ import {
   WalletCards,
   Wrench,
 } from "lucide-react";
-import type { userDataRegister } from "../../models/userData.model";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import {
   forgetPassword,
   getCurrentUser,
   login,
   loginWithGoogle,
   register,
-  type userRegister,
 } from "./loginService";
 import { useNavigate } from "react-router";
 import { useDispatch } from "react-redux";
@@ -121,10 +125,10 @@ const LoginPage = () => {
               }),
             );
             dispatch(saveUserlogined(currentUser));
-            message.success(isVi ? "Đăng nhập Google thành công!" : "Google login successful!");
+            toast.success(isVi ? "Đăng nhập Google thành công!" : "Google login successful!");
             navigation("/", { replace: true });
           } catch {
-            message.error(isVi ? "Đăng nhập Google thất bại." : "Google login failed. Please try again.");
+            toast.error(isVi ? "Đăng nhập Google thất bại." : "Google login failed. Please try again.");
           } finally {
             setGoogleLoading(false);
           }
@@ -159,15 +163,21 @@ const LoginPage = () => {
     document.head.appendChild(script);
   }, [authMode, dispatch, isVi, navigation]);
 
-  const handleRegisterSubmit = async (values: userRegister) => {
+  const handleRegisterSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const values = new FormData(event.currentTarget);
     setLoading(true);
     try {
-      const result = await register(values);
+      const result = await register({
+        name: String(values.get("name") ?? ""),
+        email: String(values.get("email") ?? ""),
+        phone: String(values.get("phone") ?? ""),
+      });
       if (result.status !== 200) {
-        message.error(result.data?.message || "Unable to create account.");
+        toast.error(result.data?.message || "Unable to create account.");
         return;
       }
-      message.success(
+      toast.success(
         isVi
           ? "Đã tạo tài khoản. Vui lòng kiểm tra email xác thực."
           : "Account created. Please check your verification email.",
@@ -178,30 +188,36 @@ const LoginPage = () => {
     }
   };
 
-  const resetPassword = async (values: userRegister) => {
-    if (!values.email) return;
+  const resetPassword = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const email = String(new FormData(event.currentTarget).get("email") ?? "");
+    if (!email) return;
     setLoading(true);
     try {
-      const result = await forgetPassword(values.email);
-      if (result.status === 200) message.success(result.data?.message);
-      else message.error(result.data?.message);
+      const result = await forgetPassword(email);
+      if (result.status === 200) toast.success(result.data?.message);
+      else toast.error(result.data?.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSendCode = async (values: userDataRegister) => {
-    if (!values.userName || !values.password) return;
+  const handleSendCode = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const userName = String(data.get("userName") ?? "");
+    const password = String(data.get("password") ?? "");
+    if (!userName || !password) return;
     setLoading(true);
     try {
-      const result = await login(values.userName, values.password);
+      const result = await login(userName, password);
       if (!result.data || result.status !== 200) {
-        message.error(isVi ? "Không thể đăng nhập. Vui lòng kiểm tra lại thông tin." : "Unable to login. Please check your details.");
+        toast.error(isVi ? "Không thể đăng nhập. Vui lòng kiểm tra lại thông tin." : "Unable to login. Please check your details.");
         return;
       }
       navigation("/dashboard", { replace: true });
     } catch {
-      message.error(isVi ? "Không thể đăng nhập. Vui lòng thử lại." : "Unable to login. Please try again.");
+      toast.error(isVi ? "Không thể đăng nhập. Vui lòng thử lại." : "Unable to login. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -256,26 +272,27 @@ const LoginPage = () => {
           </div>
 
           {authMode === "login" && (
-            <Form layout="vertical" onFinish={handleSendCode} requiredMark={false}>
-              <Form.Item label={isVi ? "Mã tổ chức / Workspace" : "Organization / Workspace"} name="workspace">
-                <Input prefix={<Building2 size={18} />} placeholder={isVi ? "VD: CONSTRUCT-SGN hoặc tên công ty" : "e.g. CONSTRUCT-SGN or company name"} size="large" />
-              </Form.Item>
-              <Form.Item label={isVi ? "Email công vụ" : "Work email"} name="userName" rules={[{ required: true, message: isVi ? "Vui lòng nhập email" : "Please enter your email" }]}>
-                <Input prefix={<Mail size={18} />} placeholder="ten.nhanvien@congty.com" size="large" autoComplete="username" />
-              </Form.Item>
-              <Form.Item label={isVi ? "Mật khẩu" : "Password"} name="password" rules={[{ required: true, message: isVi ? "Vui lòng nhập mật khẩu" : "Please enter your password" }]}>
-                <Input.Password prefix={<LockKeyhole size={18} />} placeholder="••••••••" size="large" autoComplete="current-password" />
-              </Form.Item>
+            <form className="auth-form" onSubmit={handleSendCode}>
+              <div className="auth-field">
+                <Label htmlFor="workspace">{isVi ? "Mã tổ chức / Workspace" : "Organization / Workspace"}</Label>
+                <div className="auth-input"><Building2 size={18} /><Input id="workspace" name="workspace" placeholder={isVi ? "VD: CONSTRUCT-SGN hoặc tên công ty" : "e.g. CONSTRUCT-SGN or company name"} /></div>
+              </div>
+              <div className="auth-field">
+                <Label htmlFor="userName">{isVi ? "Email công vụ" : "Work email"}</Label>
+                <div className="auth-input"><Mail size={18} /><Input id="userName" name="userName" type="email" placeholder="ten.nhanvien@congty.com" autoComplete="username" required /></div>
+              </div>
+              <div className="auth-field">
+                <Label htmlFor="password">{isVi ? "Mật khẩu" : "Password"}</Label>
+                <div className="auth-input"><LockKeyhole size={18} /><Input id="password" name="password" type="password" placeholder="••••••••" autoComplete="current-password" required /></div>
+              </div>
               <div className="form-options">
-                <Form.Item name="remember" valuePropName="checked" noStyle>
-                  <label className="remember"><input type="checkbox" /> {isVi ? "Ghi nhớ phiên đăng nhập" : "Remember this session"}</label>
-                </Form.Item>
+                <label className="remember"><Checkbox name="remember" /> {isVi ? "Ghi nhớ phiên đăng nhập" : "Remember this session"}</label>
                 <button type="button" className="text-button" onClick={() => setAuthMode("forgotpassword")}>{isVi ? "Quên mật khẩu?" : "Forgot password?"}</button>
               </div>
-              <Button className="login-submit" type="primary" htmlType="submit" block loading={loading}>
-                {isVi ? "Đăng nhập hệ thống" : "Sign in to system"}<LogIn size={19} />
+              <Button className="login-submit" type="submit" disabled={loading}>
+                {loading ? <Spinner /> : <>{isVi ? "Đăng nhập hệ thống" : "Sign in to system"}<LogIn size={19} /></>}
               </Button>
-              <Divider plain>{isVi ? "Hoặc đăng nhập doanh nghiệp bằng" : "Or continue with"}</Divider>
+              <div className="auth-divider"><Separator /><span>{isVi ? "Hoặc đăng nhập doanh nghiệp bằng" : "Or continue with"}</span></div>
               {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
                 <div id="google-login-button" className={`google-login${googleLoading ? " is-loading" : ""}`} aria-busy={googleLoading} />
               ) : (
@@ -285,33 +302,25 @@ const LoginPage = () => {
                 {isVi ? "Chưa có tài khoản doanh nghiệp?" : "Need an enterprise account?"}{" "}
                 <button type="button" onClick={() => setAuthMode("register")}>{isVi ? "Đăng ký ngay" : "Create one"}</button>
               </p>
-            </Form>
+            </form>
           )}
 
           {authMode === "register" && (
-            <Form layout="vertical" onFinish={handleRegisterSubmit} requiredMark={false}>
-              <Form.Item label={isVi ? "Họ và tên" : "Full name"} name="name" rules={[{ required: true }]}>
-                <Input prefix={<User size={18} />} placeholder="Nguyen Gia Bao" size="large" />
-              </Form.Item>
-              <Form.Item label="Email" name="email" rules={[{ required: true, type: "email" }]}>
-                <Input prefix={<Mail size={18} />} placeholder="email@example.com" size="large" />
-              </Form.Item>
-              <Form.Item label={isVi ? "Số điện thoại" : "Phone number"} name="phone" rules={[{ required: true }]}>
-                <Input prefix={<Phone size={18} />} placeholder="+84 123 456 789" size="large" />
-              </Form.Item>
-              <Button className="login-submit" type="primary" htmlType="submit" block loading={loading}>{isVi ? "Tạo tài khoản" : "Create account"}<ArrowRight size={19} /></Button>
+            <form className="auth-form" onSubmit={handleRegisterSubmit}>
+              <div className="auth-field"><Label htmlFor="register-name">{isVi ? "Họ và tên" : "Full name"}</Label><div className="auth-input"><User size={18} /><Input id="register-name" name="name" placeholder="Nguyen Gia Bao" required /></div></div>
+              <div className="auth-field"><Label htmlFor="register-email">Email</Label><div className="auth-input"><Mail size={18} /><Input id="register-email" name="email" type="email" placeholder="email@example.com" required /></div></div>
+              <div className="auth-field"><Label htmlFor="register-phone">{isVi ? "Số điện thoại" : "Phone number"}</Label><div className="auth-input"><Phone size={18} /><Input id="register-phone" name="phone" type="tel" placeholder="+84 123 456 789" required /></div></div>
+              <Button className="login-submit" type="submit" disabled={loading}>{loading ? <Spinner /> : <>{isVi ? "Tạo tài khoản" : "Create account"}<ArrowRight size={19} /></>}</Button>
               <button type="button" className="back-button" onClick={() => setAuthMode("login")}><ArrowLeft size={17} />{isVi ? "Quay lại đăng nhập" : "Back to login"}</button>
-            </Form>
+            </form>
           )}
 
           {authMode === "forgotpassword" && (
-            <Form layout="vertical" onFinish={resetPassword} requiredMark={false}>
-              <Form.Item label="Email" name="email" rules={[{ required: true, type: "email" }]}>
-                <Input prefix={<Mail size={18} />} placeholder="email@example.com" size="large" />
-              </Form.Item>
-              <Button className="login-submit" type="primary" htmlType="submit" block loading={loading}>{isVi ? "Gửi liên kết đặt lại" : "Send reset link"}<ArrowRight size={19} /></Button>
+            <form className="auth-form" onSubmit={resetPassword}>
+              <div className="auth-field"><Label htmlFor="reset-email">Email</Label><div className="auth-input"><Mail size={18} /><Input id="reset-email" name="email" type="email" placeholder="email@example.com" required /></div></div>
+              <Button className="login-submit" type="submit" disabled={loading}>{loading ? <Spinner /> : <>{isVi ? "Gửi liên kết đặt lại" : "Send reset link"}<ArrowRight size={19} /></>}</Button>
               <button type="button" className="back-button" onClick={() => setAuthMode("login")}><ArrowLeft size={17} />{isVi ? "Quay lại đăng nhập" : "Back to login"}</button>
-            </Form>
+            </form>
           )}
 
           <div className="support-box">

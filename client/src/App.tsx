@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Spin } from "antd";
+import { Spinner } from "@/components/ui/spinner";
+import { Toaster } from "@/components/ui/sonner";
 
 import "./index.css";
 
@@ -84,7 +85,7 @@ function App() {
         aria-live="polite"
         aria-busy="true"
       >
-        <Spin size="large" />
+        <Spinner className="size-8 text-teal-700" />
         {/* <p>Checking your session...</p> */}
       </div>
     );
@@ -93,6 +94,7 @@ function App() {
   return (
     <React.Fragment>
       <RoutesApp />
+      <Toaster position="top-right" richColors />
     </React.Fragment>
   );
 }
