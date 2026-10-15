@@ -274,10 +274,6 @@ const LoginPage = () => {
           {authMode === "login" && (
             <form className="auth-form" onSubmit={handleSendCode}>
               <div className="auth-field">
-                <Label htmlFor="workspace">{isVi ? "Mã tổ chức / Workspace" : "Organization / Workspace"}</Label>
-                <div className="auth-input"><Building2 size={18} /><Input id="workspace" name="workspace" placeholder={isVi ? "VD: CONSTRUCT-SGN hoặc tên công ty" : "e.g. CONSTRUCT-SGN or company name"} /></div>
-              </div>
-              <div className="auth-field">
                 <Label htmlFor="userName">{isVi ? "Email công vụ" : "Work email"}</Label>
                 <div className="auth-input"><Mail size={18} /><Input id="userName" name="userName" type="email" placeholder="ten.nhanvien@congty.com" autoComplete="username" required /></div>
               </div>
