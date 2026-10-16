@@ -1,3 +1,4 @@
+import { isAxiosError } from "axios";
 import { type FormEvent, useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -165,24 +166,34 @@ const LoginPage = () => {
 
   const handleRegisterSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (loading) return;
     const values = new FormData(event.currentTarget);
     setLoading(true);
     try {
-      const result = await register({
-        name: String(values.get("name") ?? ""),
-        email: String(values.get("email") ?? ""),
-        phone: String(values.get("phone") ?? ""),
+      await register({
+        name: String(values.get("name") ?? "").trim(),
+        email: String(values.get("email") ?? "").trim(),
+        phone: String(values.get("phone") ?? "").trim(),
       });
-      if (result.status !== 200) {
-        toast.error(result.data?.message || "Unable to create account.");
-        return;
-      }
       toast.success(
         isVi
-          ? "Đã tạo tài khoản. Vui lòng kiểm tra email xác thực."
-          : "Account created. Please check your verification email.",
+          ? "Đã tạo tài khoản. Vui lòng kiểm tra email để thiết lập mật khẩu."
+          : "Account created. Please check your email to set your password.",
       );
       setAuthMode("login");
+    } catch (error) {
+      const fallback = isVi
+        ? "Không thể tạo tài khoản. Vui lòng kiểm tra kết nối và thử lại."
+        : "Unable to create your account. Check your connection and try again.";
+      const apiMessage = isAxiosError<{ message?: string | string[] }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      const message = Array.isArray(apiMessage) ? apiMessage.join(". ") : apiMessage;
+      toast.error(
+        message === "User already exists"
+          ? isVi ? "Email này đã được đăng ký. Vui lòng đăng nhập hoặc khôi phục mật khẩu." : "This email is already registered. Please sign in or reset your password."
+          : message || fallback,
+      );
     } finally {
       setLoading(false);
     }

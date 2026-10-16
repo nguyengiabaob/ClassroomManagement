@@ -59,7 +59,7 @@ export const register = async (data: userRegister) =>
     phone: data.phone,
     email: data.email,
     fullName: data.name,
-  });
+  }, { timeout: 30000 });
 
 export const setPassword = async (token: string, password: string) =>
   await AxiosClient.post<resultApiString>("/api/auth/setupPassword", {
