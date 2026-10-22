@@ -55,11 +55,15 @@ export const verifyAccessCode = async (phone: string, accessCode: string) =>
   });
 
 export const register = async (data: userRegister) =>
-  await AxiosClient.post<resultApiString>("/api/auth/resgisterUser", {
-    phone: data.phone,
-    email: data.email,
-    fullName: data.name,
-  }, { timeout: 30000 });
+  await AxiosClient.post<resultApiString>(
+    "/api/auth/resgisterUser",
+    {
+      phone: data.phone,
+      email: data.email,
+      fullName: data.name,
+    },
+    { timeout: 30000 },
+  );
 
 export const setPassword = async (token: string, password: string) =>
   await AxiosClient.post<resultApiString>("/api/auth/setupPassword", {
@@ -68,8 +72,8 @@ export const setPassword = async (token: string, password: string) =>
   });
 
 export const login = async (userName: string, password: string) =>
-  await AxiosClient.post<resultApiString>("/api/auth/login", {
-    userName: userName,
+  await AxiosClient.post<any>("/api/auth/login", {
+    email: userName,
     password: password,
   });
 

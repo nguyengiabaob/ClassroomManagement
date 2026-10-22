@@ -27,7 +27,7 @@ const RoutesMainApp = () => {
   return (
     <MainLayout>
       <Routes>
-        <Route path="/" element={<InstructorDashboardPage />}>
+        <Route path="/dashboard" element={<InstructorDashboardPage />}>
           {/* <Route
             path="instructor"
             element={<InstructorDashboardPage />}

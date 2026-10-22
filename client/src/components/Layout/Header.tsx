@@ -1,4 +1,4 @@
-import { Bell, Search, Settings } from "lucide-react"
+import { Bell, Menu, Search, Settings } from "lucide-react"
 import type { ChangeEvent } from "react"
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -23,6 +23,7 @@ export interface HeaderProps {
   onSettingsClick?: () => void
   onProfileClick?: () => void
   onNavigationChange?: (item: string) => void
+  onOpenMobileMenu?: () => void
 }
 
 const navigationItems = ["Dự án", "Quản lý Công trường", "Thiết bị"]
@@ -37,13 +38,39 @@ export const Header = ({
   onSettingsClick,
   onProfileClick,
   onNavigationChange,
+  onOpenMobileMenu,
 }: HeaderProps) => {
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     onSearchChange?.(event.target.value)
   }
 
   return (
-    <header className="flex h-16 w-full shrink-0 items-center border-b border-slate-200/70 bg-[#fbf9ff] px-4 sm:px-6 lg:px-8">
+    <header className="flex h-16 w-full shrink-0 items-center border-b border-slate-200/70 bg-[#fbf9ff] px-3 sm:px-6 lg:px-8">
+      {/* Mobile Hamburger Menu Button */}
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        aria-label="Mở menu thanh bên"
+        onClick={onOpenMobileMenu}
+        className="-ml-1 mr-1 size-9 shrink-0 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-[#007f73] focus-visible:ring-2 focus-visible:ring-[#007f73]/30 lg:hidden"
+      >
+        <Menu className="size-5" />
+      </Button>
+
+      {/* Mobile Brand Indicator */}
+      <div className="mr-2 flex shrink-0 items-center gap-2 lg:hidden">
+        <span
+          className="size-7 shrink-0 rounded-lg"
+          style={{
+            backgroundColor: "#00796f",
+            boxShadow: "0 4px 10px rgba(0, 121, 111, 0.24)",
+          }}
+        />
+        <span className="hidden text-sm font-bold tracking-tight text-slate-900 sm:inline">
+          ConstructFriendly
+        </span>
+      </div>
       <nav aria-label="Điều hướng chính" className="hidden h-full shrink-0 items-center gap-7 lg:flex xl:gap-10">
         {navigationItems.map((item) => {
           const active = item === title

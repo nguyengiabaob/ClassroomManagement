@@ -79,7 +79,8 @@ const features = [
     icon: FolderOpen,
     title: "Hồ sơ số & Bản vẽ",
     titleEn: "Digital records & drawings",
-    description: "Bản vẽ thiết kế, hồ sơ nghiệm thu, tra cứu nhanh tại công trường.",
+    description:
+      "Bản vẽ thiết kế, hồ sơ nghiệm thu, tra cứu nhanh tại công trường.",
     descriptionEn: "Drawings and handover records, ready on every job site.",
     link: "Đồng bộ BIM/CAD",
     linkEn: "BIM/CAD sync",
@@ -126,10 +127,18 @@ const LoginPage = () => {
               }),
             );
             dispatch(saveUserlogined(currentUser));
-            toast.success(isVi ? "Đăng nhập Google thành công!" : "Google login successful!");
+            toast.success(
+              isVi
+                ? "Đăng nhập Google thành công!"
+                : "Google login successful!",
+            );
             navigation("/", { replace: true });
           } catch {
-            toast.error(isVi ? "Đăng nhập Google thất bại." : "Google login failed. Please try again.");
+            toast.error(
+              isVi
+                ? "Đăng nhập Google thất bại."
+                : "Google login failed. Please try again.",
+            );
           } finally {
             setGoogleLoading(false);
           }
@@ -152,7 +161,10 @@ const LoginPage = () => {
     );
     if (existingScript) {
       if (window.google) renderGoogleButton();
-      else existingScript.addEventListener("load", renderGoogleButton, { once: true });
+      else
+        existingScript.addEventListener("load", renderGoogleButton, {
+          once: true,
+        });
       return;
     }
 
@@ -188,10 +200,14 @@ const LoginPage = () => {
       const apiMessage = isAxiosError<{ message?: string | string[] }>(error)
         ? error.response?.data?.message
         : undefined;
-      const message = Array.isArray(apiMessage) ? apiMessage.join(". ") : apiMessage;
+      const message = Array.isArray(apiMessage)
+        ? apiMessage.join(". ")
+        : apiMessage;
       toast.error(
         message === "User already exists"
-          ? isVi ? "Email này đã được đăng ký. Vui lòng đăng nhập hoặc khôi phục mật khẩu." : "This email is already registered. Please sign in or reset your password."
+          ? isVi
+            ? "Email này đã được đăng ký. Vui lòng đăng nhập hoặc khôi phục mật khẩu."
+            : "This email is already registered. Please sign in or reset your password."
           : message || fallback,
       );
     } finally {
@@ -223,12 +239,24 @@ const LoginPage = () => {
     try {
       const result = await login(userName, password);
       if (!result.data || result.status !== 200) {
-        toast.error(isVi ? "Không thể đăng nhập. Vui lòng kiểm tra lại thông tin." : "Unable to login. Please check your details.");
+        toast.error(
+          isVi
+            ? "Không thể đăng nhập. Vui lòng kiểm tra lại thông tin."
+            : "Unable to login. Please check your details.",
+        );
         return;
       }
+      console.log("sdsad", result.data);
+
+      localStorage.setItem("access_token", result?.data?.accessToken);
+      localStorage.setItem("refresh_token", result?.data?.refreshToken);
       navigation("/dashboard", { replace: true });
     } catch {
-      toast.error(isVi ? "Không thể đăng nhập. Vui lòng thử lại." : "Unable to login. Please try again.");
+      toast.error(
+        isVi
+          ? "Không thể đăng nhập. Vui lòng thử lại."
+          : "Unable to login. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -239,18 +267,24 @@ const LoginPage = () => {
       ? {
           eyebrow: isVi ? "KHỞI TẠO TÀI KHOẢN" : "CREATE AN ACCOUNT",
           title: isVi ? "Đăng ký doanh nghiệp" : "Create your account",
-          subtitle: isVi ? "Bắt đầu quản lý dự án trên một nền tảng." : "Start managing projects in one place.",
+          subtitle: isVi
+            ? "Bắt đầu quản lý dự án trên một nền tảng."
+            : "Start managing projects in one place.",
         }
       : authMode === "forgotpassword"
         ? {
             eyebrow: isVi ? "KHÔI PHỤC TRUY CẬP" : "RESTORE ACCESS",
             title: isVi ? "Quên mật khẩu?" : "Forgot your password?",
-            subtitle: isVi ? "Nhập email để nhận liên kết đặt lại mật khẩu." : "Enter your email to receive a reset link.",
+            subtitle: isVi
+              ? "Nhập email để nhận liên kết đặt lại mật khẩu."
+              : "Enter your email to receive a reset link.",
           }
         : {
             eyebrow: isVi ? "CỔNG XÁC THỰC AN TOÀN" : "SECURE AUTHENTICATION",
             title: isVi ? "Đăng nhập hệ thống" : "Sign in to your workspace",
-            subtitle: isVi ? "Cổng thông tin quản trị & điều hành thi công trực tuyến" : "Your online construction operations portal",
+            subtitle: isVi
+              ? "Cổng thông tin quản trị & điều hành thi công trực tuyến"
+              : "Your online construction operations portal",
           };
 
   return (
@@ -258,17 +292,38 @@ const LoginPage = () => {
       <div className="login-page__shade" />
       <header className="login-header">
         <a className="brand" href="/login" aria-label="ConstructFriendly login">
-          <span className="brand__mark"><Building2 size={27} strokeWidth={2.2} /></span>
+          <span className="brand__mark">
+            <Building2 size={27} strokeWidth={2.2} />
+          </span>
           <span>
             <strong>ConstructFriendly</strong>
             <small>Enterprise Construction Cloud</small>
           </span>
         </a>
         <div className="login-header__actions">
-          <div className="security-pill"><ShieldCheck size={17} /> {isVi ? "Hệ thống bảo mật TLS 1.3 Enterprise" : "TLS 1.3 Enterprise security"}</div>
+          <div className="security-pill">
+            <ShieldCheck size={17} />{" "}
+            {isVi
+              ? "Hệ thống bảo mật TLS 1.3 Enterprise"
+              : "TLS 1.3 Enterprise security"}
+          </div>
           <div className="language-switch" aria-label="Language">
-            <button type="button" className={isVi ? "active" : ""} onClick={() => setLanguage("vi")} aria-pressed={isVi}>VN</button>
-            <button type="button" className={!isVi ? "active" : ""} onClick={() => setLanguage("en")} aria-pressed={!isVi}>EN</button>
+            <button
+              type="button"
+              className={isVi ? "active" : ""}
+              onClick={() => setLanguage("vi")}
+              aria-pressed={isVi}
+            >
+              VN
+            </button>
+            <button
+              type="button"
+              className={!isVi ? "active" : ""}
+              onClick={() => setLanguage("en")}
+              aria-pressed={!isVi}
+            >
+              EN
+            </button>
           </div>
         </div>
       </header>
@@ -277,7 +332,10 @@ const LoginPage = () => {
         <section className="auth-card" aria-labelledby="auth-title">
           <div className="auth-card__accent" />
           <div className="auth-card__heading">
-            <p className="auth-eyebrow"><span />{modeCopy.eyebrow}</p>
+            <p className="auth-eyebrow">
+              <span />
+              {modeCopy.eyebrow}
+            </p>
             <h1 id="auth-title">{modeCopy.title}</h1>
             <p>{modeCopy.subtitle}</p>
           </div>
@@ -285,86 +343,289 @@ const LoginPage = () => {
           {authMode === "login" && (
             <form className="auth-form" onSubmit={handleSendCode}>
               <div className="auth-field">
-                <Label htmlFor="userName">{isVi ? "Email công vụ" : "Work email"}</Label>
-                <div className="auth-input"><Mail size={18} /><Input id="userName" name="userName" type="email" placeholder="ten.nhanvien@congty.com" autoComplete="username" required /></div>
+                <Label htmlFor="userName">
+                  {isVi ? "Email công vụ" : "Work email"}
+                </Label>
+                <div className="auth-input">
+                  <Mail size={18} />
+                  <Input
+                    id="userName"
+                    name="userName"
+                    type="email"
+                    placeholder="ten.nhanvien@congty.com"
+                    autoComplete="username"
+                    required
+                  />
+                </div>
               </div>
               <div className="auth-field">
-                <Label htmlFor="password">{isVi ? "Mật khẩu" : "Password"}</Label>
-                <div className="auth-input"><LockKeyhole size={18} /><Input id="password" name="password" type="password" placeholder="••••••••" autoComplete="current-password" required /></div>
+                <Label htmlFor="password">
+                  {isVi ? "Mật khẩu" : "Password"}
+                </Label>
+                <div className="auth-input">
+                  <LockKeyhole size={18} />
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    placeholder="••••••••"
+                    autoComplete="current-password"
+                    required
+                  />
+                </div>
               </div>
               <div className="form-options">
-                <label className="remember"><Checkbox name="remember" /> {isVi ? "Ghi nhớ phiên đăng nhập" : "Remember this session"}</label>
-                <button type="button" className="text-button" onClick={() => setAuthMode("forgotpassword")}>{isVi ? "Quên mật khẩu?" : "Forgot password?"}</button>
+                <label className="remember">
+                  <Checkbox name="remember" />{" "}
+                  {isVi ? "Ghi nhớ phiên đăng nhập" : "Remember this session"}
+                </label>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => setAuthMode("forgotpassword")}
+                >
+                  {isVi ? "Quên mật khẩu?" : "Forgot password?"}
+                </button>
               </div>
               <Button className="login-submit" type="submit" disabled={loading}>
-                {loading ? <Spinner /> : <>{isVi ? "Đăng nhập hệ thống" : "Sign in to system"}<LogIn size={19} /></>}
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    {isVi ? "Đăng nhập hệ thống" : "Sign in to system"}
+                    <LogIn size={19} />
+                  </>
+                )}
               </Button>
-              <div className="auth-divider"><Separator /><span>{isVi ? "Hoặc đăng nhập doanh nghiệp bằng" : "Or continue with"}</span></div>
+              <div className="auth-divider">
+                <Separator />
+                <span>
+                  {isVi
+                    ? "Hoặc đăng nhập doanh nghiệp bằng"
+                    : "Or continue with"}
+                </span>
+              </div>
               {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
-                <div id="google-login-button" className={`google-login${googleLoading ? " is-loading" : ""}`} aria-busy={googleLoading} />
+                <div
+                  id="google-login-button"
+                  className={`google-login${googleLoading ? " is-loading" : ""}`}
+                  aria-busy={googleLoading}
+                />
               ) : (
-                <div className="google-placeholder">Google Workspace <span>{isVi ? "chưa được cấu hình" : "is not configured"}</span></div>
+                <div className="google-placeholder">
+                  Google Workspace{" "}
+                  <span>
+                    {isVi ? "chưa được cấu hình" : "is not configured"}
+                  </span>
+                </div>
               )}
               <p className="create-account">
-                {isVi ? "Chưa có tài khoản doanh nghiệp?" : "Need an enterprise account?"}{" "}
-                <button type="button" onClick={() => setAuthMode("register")}>{isVi ? "Đăng ký ngay" : "Create one"}</button>
+                {isVi
+                  ? "Chưa có tài khoản doanh nghiệp?"
+                  : "Need an enterprise account?"}{" "}
+                <button type="button" onClick={() => setAuthMode("register")}>
+                  {isVi ? "Đăng ký ngay" : "Create one"}
+                </button>
               </p>
             </form>
           )}
 
           {authMode === "register" && (
             <form className="auth-form" onSubmit={handleRegisterSubmit}>
-              <div className="auth-field"><Label htmlFor="register-name">{isVi ? "Họ và tên" : "Full name"}</Label><div className="auth-input"><User size={18} /><Input id="register-name" name="name" placeholder="Nguyen Gia Bao" required /></div></div>
-              <div className="auth-field"><Label htmlFor="register-email">Email</Label><div className="auth-input"><Mail size={18} /><Input id="register-email" name="email" type="email" placeholder="email@example.com" required /></div></div>
-              <div className="auth-field"><Label htmlFor="register-phone">{isVi ? "Số điện thoại" : "Phone number"}</Label><div className="auth-input"><Phone size={18} /><Input id="register-phone" name="phone" type="tel" placeholder="+84 123 456 789" required /></div></div>
-              <Button className="login-submit" type="submit" disabled={loading}>{loading ? <Spinner /> : <>{isVi ? "Tạo tài khoản" : "Create account"}<ArrowRight size={19} /></>}</Button>
-              <button type="button" className="back-button" onClick={() => setAuthMode("login")}><ArrowLeft size={17} />{isVi ? "Quay lại đăng nhập" : "Back to login"}</button>
+              <div className="auth-field">
+                <Label htmlFor="register-name">
+                  {isVi ? "Họ và tên" : "Full name"}
+                </Label>
+                <div className="auth-input">
+                  <User size={18} />
+                  <Input
+                    id="register-name"
+                    name="name"
+                    placeholder="Nguyen Gia Bao"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="auth-field">
+                <Label htmlFor="register-email">Email</Label>
+                <div className="auth-input">
+                  <Mail size={18} />
+                  <Input
+                    id="register-email"
+                    name="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="auth-field">
+                <Label htmlFor="register-phone">
+                  {isVi ? "Số điện thoại" : "Phone number"}
+                </Label>
+                <div className="auth-input">
+                  <Phone size={18} />
+                  <Input
+                    id="register-phone"
+                    name="phone"
+                    type="tel"
+                    placeholder="+84 123 456 789"
+                    required
+                  />
+                </div>
+              </div>
+              <Button className="login-submit" type="submit" disabled={loading}>
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    {isVi ? "Tạo tài khoản" : "Create account"}
+                    <ArrowRight size={19} />
+                  </>
+                )}
+              </Button>
+              <button
+                type="button"
+                className="back-button"
+                onClick={() => setAuthMode("login")}
+              >
+                <ArrowLeft size={17} />
+                {isVi ? "Quay lại đăng nhập" : "Back to login"}
+              </button>
             </form>
           )}
 
           {authMode === "forgotpassword" && (
             <form className="auth-form" onSubmit={resetPassword}>
-              <div className="auth-field"><Label htmlFor="reset-email">Email</Label><div className="auth-input"><Mail size={18} /><Input id="reset-email" name="email" type="email" placeholder="email@example.com" required /></div></div>
-              <Button className="login-submit" type="submit" disabled={loading}>{loading ? <Spinner /> : <>{isVi ? "Gửi liên kết đặt lại" : "Send reset link"}<ArrowRight size={19} /></>}</Button>
-              <button type="button" className="back-button" onClick={() => setAuthMode("login")}><ArrowLeft size={17} />{isVi ? "Quay lại đăng nhập" : "Back to login"}</button>
+              <div className="auth-field">
+                <Label htmlFor="reset-email">Email</Label>
+                <div className="auth-input">
+                  <Mail size={18} />
+                  <Input
+                    id="reset-email"
+                    name="email"
+                    type="email"
+                    placeholder="email@example.com"
+                    required
+                  />
+                </div>
+              </div>
+              <Button className="login-submit" type="submit" disabled={loading}>
+                {loading ? (
+                  <Spinner />
+                ) : (
+                  <>
+                    {isVi ? "Gửi liên kết đặt lại" : "Send reset link"}
+                    <ArrowRight size={19} />
+                  </>
+                )}
+              </Button>
+              <button
+                type="button"
+                className="back-button"
+                onClick={() => setAuthMode("login")}
+              >
+                <ArrowLeft size={17} />
+                {isVi ? "Quay lại đăng nhập" : "Back to login"}
+              </button>
             </form>
           )}
 
           <div className="support-box">
             <Headphones size={21} />
-            <p><strong>{isVi ? "Hỗ trợ kỹ sư công trường:" : "Site engineer support:"}</strong> {isVi ? "Hotline kỹ thuật" : "Technical hotline"} <a href="tel:19006868">1900 6868</a> {isVi ? "hoặc liên hệ quản trị hệ thống." : "or contact your system administrator."}</p>
+            <p>
+              <strong>
+                {isVi ? "Hỗ trợ kỹ sư công trường:" : "Site engineer support:"}
+              </strong>{" "}
+              {isVi ? "Hotline kỹ thuật" : "Technical hotline"}{" "}
+              <a href="tel:19006868">1900 6868</a>{" "}
+              {isVi
+                ? "hoặc liên hệ quản trị hệ thống."
+                : "or contact your system administrator."}
+            </p>
           </div>
         </section>
 
         <section className="hero-panel">
-          <p className="hero-kicker"><Wrench size={16} />{isVi ? "Nền tảng số hóa ngành xây dựng" : "Construction digitalization platform"}</p>
-          <h2>{isVi ? "ConstructFriendly Suite - Quản trị công trường & doanh nghiệp toàn diện" : "ConstructFriendly Suite - Complete site and enterprise control"}</h2>
-          <p className="hero-description">{isVi ? "Giải pháp số hóa toàn diện từ văn phòng đến hiện trường thi công. Kết nối dữ liệu đa dự án, chuẩn hóa quy trình nghiệm thu và kiểm soát chi phí thời gian thực." : "A complete digital solution from head office to the job site. Connect every project, standardize quality control and track costs in real time."}</p>
+          <p className="hero-kicker">
+            <Wrench size={16} />
+            {isVi
+              ? "Nền tảng số hóa ngành xây dựng"
+              : "Construction digitalization platform"}
+          </p>
+          <h2>
+            {isVi
+              ? "ConstructFriendly Suite - Quản trị công trường & doanh nghiệp toàn diện"
+              : "ConstructFriendly Suite - Complete site and enterprise control"}
+          </h2>
+          <p className="hero-description">
+            {isVi
+              ? "Giải pháp số hóa toàn diện từ văn phòng đến hiện trường thi công. Kết nối dữ liệu đa dự án, chuẩn hóa quy trình nghiệm thu và kiểm soát chi phí thời gian thực."
+              : "A complete digital solution from head office to the job site. Connect every project, standardize quality control and track costs in real time."}
+          </p>
 
           <div className="feature-grid">
             {features.map((feature) => {
               const Icon = feature.icon;
               return (
                 <article className="feature-card" key={feature.title}>
-                  <span className="feature-card__icon"><Icon size={23} /></span>
+                  <span className="feature-card__icon">
+                    <Icon size={23} />
+                  </span>
                   <h3>{isVi ? feature.title : feature.titleEn}</h3>
                   <p>{isVi ? feature.description : feature.descriptionEn}</p>
-                  <span className="feature-card__link">{isVi ? feature.link : feature.linkEn}<ArrowRight size={15} /></span>
+                  <span className="feature-card__link">
+                    {isVi ? feature.link : feature.linkEn}
+                    <ArrowRight size={15} />
+                  </span>
                 </article>
               );
             })}
           </div>
 
           <div className="trust-strip">
-            <div><span><Network size={22} /></span><p>{isVi ? "Mạng lưới tin cậy" : "Trusted network"}<strong>{isVi ? "120+ Dự án & Nhà thầu đang tin dùng" : "Trusted by 120+ projects & contractors"}</strong></p></div>
-            <div><span><Award size={22} /></span><p>{isVi ? "An toàn dữ liệu" : "Data protection"}<strong>{isVi ? "Tiêu chuẩn bảo mật ISO 27001" : "ISO 27001 security standard"}</strong></p></div>
+            <div>
+              <span>
+                <Network size={22} />
+              </span>
+              <p>
+                {isVi ? "Mạng lưới tin cậy" : "Trusted network"}
+                <strong>
+                  {isVi
+                    ? "120+ Dự án & Nhà thầu đang tin dùng"
+                    : "Trusted by 120+ projects & contractors"}
+                </strong>
+              </p>
+            </div>
+            <div>
+              <span>
+                <Award size={22} />
+              </span>
+              <p>
+                {isVi ? "An toàn dữ liệu" : "Data protection"}
+                <strong>
+                  {isVi
+                    ? "Tiêu chuẩn bảo mật ISO 27001"
+                    : "ISO 27001 security standard"}
+                </strong>
+              </p>
+            </div>
           </div>
         </section>
       </section>
 
       <footer className="login-footer">
-        <p>© 2026 ConstructFriendly Corp. {isVi ? "Nền tảng quản lý dự án & công trường số 1 Việt Nam." : "Enterprise construction management platform."}</p>
-        <nav aria-label="Footer"><a href="#terms">{isVi ? "Điều khoản dịch vụ" : "Terms"}</a><a href="#privacy">{isVi ? "Bảo mật thông tin" : "Privacy"}</a><a href="#support">{isVi ? "Trung tâm hỗ trợ" : "Support"}</a></nav>
+        <p>
+          © 2026 ConstructFriendly Corp.{" "}
+          {isVi
+            ? "Nền tảng quản lý dự án & công trường số 1 Việt Nam."
+            : "Enterprise construction management platform."}
+        </p>
+        <nav aria-label="Footer">
+          <a href="#terms">{isVi ? "Điều khoản dịch vụ" : "Terms"}</a>
+          <a href="#privacy">{isVi ? "Bảo mật thông tin" : "Privacy"}</a>
+          <a href="#support">{isVi ? "Trung tâm hỗ trợ" : "Support"}</a>
+        </nav>
       </footer>
     </main>
   );

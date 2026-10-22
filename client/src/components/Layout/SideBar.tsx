@@ -31,6 +31,7 @@ export interface SideBarProps {
   brandName?: string
   user?: SidebarUser
   onLogout?: () => void
+  onNavigate?: () => void
 }
 
 const AppSideBar = ({
@@ -38,6 +39,7 @@ const AppSideBar = ({
   brandName = "ConstructFriendly",
   user,
   onLogout,
+  onNavigate,
 }: SideBarProps) => {
   return (
     <aside
@@ -47,7 +49,8 @@ const AppSideBar = ({
       <NavLink
         to="/"
         aria-label={`${brandName} - Trang chủ`}
-        className="mb-8 flex shrink-0 items-center gap-3 rounded-xl px-2 text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-[#007f73]/30"
+        onClick={onNavigate}
+        className="mb-8 flex shrink-0 items-center gap-3 rounded-xl px-2 pr-8 text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-[#007f73]/30"
       >
         <span
           className="size-10 shrink-0 rounded-xl"
@@ -75,6 +78,7 @@ const AppSideBar = ({
                     <NavLink
                       to={item.url}
                       end={item.url === "/"}
+                      onClick={onNavigate}
                       style={({ isActive }) => ({
                         backgroundColor: isActive ? "#00796f" : "transparent",
                         color: isActive ? "#ffffff" : "#4f5756",
@@ -112,7 +116,7 @@ const AppSideBar = ({
         <Separator className="my-5 bg-slate-100" />
 
         <Button
-          render={<NavLink to="/projects" />}
+          render={<NavLink to="/projects" onClick={onNavigate} />}
           variant="ghost"
           className="h-13 w-full justify-center gap-2 rounded-xl bg-[#e6f2f1] text-sm font-bold text-[#007f73] hover:bg-[#dbeceb] hover:text-[#006d64]"
           style={{ backgroundColor: "#e5f1ef", color: "#00796f" }}
@@ -168,7 +172,10 @@ const AppSideBar = ({
               size="icon-sm"
               aria-label="Đăng xuất"
               title="Đăng xuất"
-              onClick={onLogout}
+              onClick={() => {
+                onNavigate?.()
+                onLogout?.()
+              }}
               className="text-slate-600 hover:bg-white hover:text-rose-600"
             >
               <LogOut className="size-4" />
