@@ -152,7 +152,7 @@ const LoginPage = () => {
         size: "large",
         text: "continue_with",
         shape: "rectangular",
-        width: container.clientWidth || 440,
+        width: "100%",
       });
     };
 
@@ -217,13 +217,36 @@ const LoginPage = () => {
 
   const resetPassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const email = String(new FormData(event.currentTarget).get("email") ?? "");
+    if (loading) return;
+    const email = String(
+      new FormData(event.currentTarget).get("email") ?? "",
+    ).trim();
     if (!email) return;
     setLoading(true);
     try {
-      const result = await forgetPassword(email);
-      if (result.status === 200) toast.success(result.data?.message);
-      else toast.error(result.data?.message);
+      await forgetPassword(email);
+      toast.success(
+        isVi
+          ? "Đã gửi liên kết đặt lại mật khẩu. Vui lòng kiểm tra email và thư rác."
+          : "Reset link sent. Please check your inbox and spam folder.",
+      );
+    } catch (error) {
+      const apiMessage = isAxiosError<{ message?: string | string[] }>(error)
+        ? error.response?.data?.message
+        : undefined;
+      const message = Array.isArray(apiMessage)
+        ? apiMessage.join(". ")
+        : apiMessage;
+      toast.error(
+        message === "User not found"
+          ? isVi
+            ? "Email này chưa được đăng ký."
+            : "This email is not registered."
+          : isVi
+            ? "Không thể gửi email khôi phục mật khẩu. Vui lòng thử lại."
+            : message ||
+              "Unable to send the password reset email. Please try again.",
+      );
     } finally {
       setLoading(false);
     }
@@ -231,6 +254,7 @@ const LoginPage = () => {
 
   const handleSendCode = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (loading) return;
     const data = new FormData(event.currentTarget);
     const userName = String(data.get("userName") ?? "");
     const password = String(data.get("password") ?? "");
@@ -246,10 +270,26 @@ const LoginPage = () => {
         );
         return;
       }
-      console.log("sdsad", result.data);
 
-      localStorage.setItem("access_token", result?.data?.accessToken);
-      localStorage.setItem("refresh_token", result?.data?.refreshToken);
+      const { accessToken, refreshToken, authenticated } = result.data;
+      if (!accessToken || !refreshToken) {
+        throw new Error("Missing login tokens");
+      }
+      localStorage.setItem("access_token", accessToken);
+      localStorage.setItem("refresh_token", refreshToken);
+      const { data: currentUser } = await getCurrentUser();
+      const userSession = {
+        ...currentUser,
+        authentication: authenticated ?? true,
+      };
+      localStorage.setItem("user_session", JSON.stringify(userSession));
+      dispatch(
+        saveUserlogined({
+          ...userSession,
+          accessToken,
+          refreshToken,
+        }),
+      );
       navigation("/dashboard", { replace: true });
     } catch {
       toast.error(
@@ -408,7 +448,7 @@ const LoginPage = () => {
               {import.meta.env.VITE_GOOGLE_CLIENT_ID ? (
                 <div
                   id="google-login-button"
-                  className={`google-login${googleLoading ? " is-loading" : ""}`}
+                  className={`w-full google-login${googleLoading ? " is-loading" : ""}`}
                   aria-busy={googleLoading}
                 />
               ) : (

@@ -9,6 +9,7 @@ import Projects from "@/features/Project/Projects";
 import ProjectDetail from "@/features/Project/Detail/ProjectDetail";
 import FilesPage from "@/features/FilesPage/FilesPage";
 import ManagedFields from "@/features/ManagedFields/ManagedFields";
+import UserManagement from "@/features/UserManagement/UserManagement";
 
 const RoutesApp = () => {
   return (
@@ -37,6 +38,8 @@ const RoutesMainApp = () => {
         <Route path="/files" element={<FilesPage />}></Route>
         <Route path="/projects" element={<Projects />}></Route>
         <Route path="/projects/:projectId" element={<ProjectDetail />}></Route>
+        <Route path="/personnel" element={<UserManagement />}></Route>
+        <Route path="/users" element={<UserManagement />}></Route>
         <Route path="/chat" element={<ChatPage />}></Route>
       </Routes>
     </MainLayout>

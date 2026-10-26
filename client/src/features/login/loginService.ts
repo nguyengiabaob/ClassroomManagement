@@ -72,7 +72,7 @@ export const setPassword = async (token: string, password: string) =>
   });
 
 export const login = async (userName: string, password: string) =>
-  await AxiosClient.post<any>("/api/auth/login", {
+  await AxiosClient.post<userLoginData>("/api/auth/login", {
     email: userName,
     password: password,
   });
@@ -101,6 +101,10 @@ export const checkToken = async () => {
 };
 
 export const forgetPassword = async (email: string) =>
-  await AxiosClient.post<resultApiString>("/api/auth/forgetPassword", {
-    email: email,
-  });
+  await AxiosClient.post<resultApiString>(
+    "/api/auth/forgetPassword",
+    {
+      email: email,
+    },
+    { timeout: 30000 },
+  );

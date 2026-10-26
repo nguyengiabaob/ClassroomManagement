@@ -1,94 +1,60 @@
-import { useMemo, useState } from "react"
-import { MapPin, Plus, Search, SlidersHorizontal } from "lucide-react"
-import { Link } from "react-router"
-import { toast } from "sonner"
+import { useEffect, useMemo, useState } from "react";
+import { MapPin, Plus, Search, SlidersHorizontal } from "lucide-react";
+import { Link } from "react-router";
+import { toast } from "sonner";
 
-import AddProjectModal, { type NewProjectValues, type ProjectStatus } from "./AddProjectModal"
-import "./Projects.css"
+import AddProjectModal, {
+  type NewProjectValues,
+  type ProjectStatus,
+} from "./AddProjectModal";
+import {
+  createProject as createProjectRequest,
+  getProjectError,
+  getProjects,
+  toProjectData,
+  type ListProjects,
+  type ProjectItem,
+} from "./projectService";
+import "./Projects.css";
 
-type ProjectItem = {
-  id: string
-  name: string
-  location: string
-  status: ProjectStatus
-  progress: number
-  image: string
-  leftLabel: string
-  leftValue: string
-  rightLabel: string
-  rightValue: string
-}
-
-const initialProjects: ProjectItem[] = [
-  {
-    id: "BF-2024-001",
-    name: "Skyline Tower",
-    location: "Quận 1, TP. Hồ Chí Minh",
-    status: "Đang thi công",
-    progress: 68,
-    image: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=1000&q=85",
-    leftLabel: "Ngân sách đã dùng",
-    leftValue: "$4.2M / $6.5M",
-    rightLabel: "Nhân lực hiện tại",
-    rightValue: "142 công nhân",
-  },
-  {
-    id: "BF-2024-002",
-    name: "Riverside Bridge",
-    location: "TP. Thủ Đức, TP. HCM",
-    status: "Lập kế hoạch",
-    progress: 12,
-    image: "https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1000&q=85",
-    leftLabel: "Ngân sách dự kiến",
-    leftValue: "$0.8M / $12.0M",
-    rightLabel: "Đội ngũ thiết kế",
-    rightValue: "24 kỹ sư",
-  },
-  {
-    id: "BF-2023-018",
-    name: "Green Valley Logistics",
-    location: "KCN VSIP, Bình Dương",
-    status: "Hoàn thành",
-    progress: 100,
-    image: "https://images.unsplash.com/photo-1509391366360-2e959784a276?auto=format&fit=crop&w=1000&q=85",
-    leftLabel: "Ngân sách cuối cùng",
-    leftValue: "$3.1M / $3.2M",
-    rightLabel: "Bàn giao",
-    rightValue: "12/2023",
-  },
-  {
-    id: "BF-2024-005",
-    name: "Ocean View Resort",
-    location: "Cam Ranh, Khánh Hòa",
-    status: "Đang thi công",
-    progress: 45,
-    image: "https://images.unsplash.com/photo-1540541338287-41700207dee6?auto=format&fit=crop&w=1000&q=85",
-    leftLabel: "Ngân sách đã dùng",
-    leftValue: "$8.5M / $18.2M",
-    rightLabel: "Nhân lực hiện tại",
-    rightValue: "210 công nhân",
-  },
-]
+const DEFAULT_PROJECT_IMAGE =
+  "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1000&q=85";
 
 function ProjectCard({ project }: { project: ProjectItem }) {
-  const statusClass = project.status.toLowerCase().replaceAll(" ", "-")
+  const statusClass = (project.status || "Lập kế hoạch")
+    .toLowerCase()
+    .replaceAll(" ", "-");
+  const imageUrl =
+    project.image?.trim() ||
+    project.imageUrl?.trim() ||
+    DEFAULT_PROJECT_IMAGE;
 
   return (
     <Link
       to={`/projects/${project.id}`}
+      state={{ project }}
       className="projects-card-link"
       aria-label={`Xem chi tiết dự án ${project.name}`}
     >
       <article className="projects-card">
         <div className="projects-card-image">
-          <img src={project.image} alt={`Dự án ${project.name}`} />
-          <span className={`projects-status is-${statusClass}`}>{project.status}</span>
+          <img
+            src={imageUrl}
+            alt={`Dự án ${project.name}`}
+            onError={(event) => {
+              event.currentTarget.onerror = null;
+              event.currentTarget.src = DEFAULT_PROJECT_IMAGE;
+            }}
+          />
+          <span className={`projects-status is-${statusClass}`}>
+            {project.status}
+          </span>
         </div>
 
         <div className="projects-card-content">
           <div className="projects-card-heading">
             <h2>{project.name}</h2>
-            <span>ID: {project.id}</span>
+            <span>Mã: {project.projectCode}</span>
           </div>
 
           <p className="projects-location">
@@ -98,60 +64,100 @@ function ProjectCard({ project }: { project: ProjectItem }) {
 
           <div className="projects-progress-copy">
             <strong>Tiến độ tổng thể</strong>
-            <span className={project.status === "Lập kế hoạch" ? "is-amber" : ""}>{project.progress}%</span>
+            <span
+              className={project.status === "Lập kế hoạch" ? "is-amber" : ""}
+            >
+              {project.progress}%
+            </span>
           </div>
-          <div className="projects-progress" role="progressbar" aria-label={`Tiến độ dự án ${project.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={project.progress}>
-            <span className={project.status === "Lập kế hoạch" ? "is-amber" : ""} style={{ width: `${project.progress}%` }} />
+          <div
+            className="projects-progress"
+            role="progressbar"
+            aria-label={`Tiến độ dự án ${project.name}`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={project.progress}
+          >
+            <span
+              className={project.status === "Lập kế hoạch" ? "is-amber" : ""}
+              style={{ width: `${project.progress}%` }}
+            />
           </div>
 
           <div className="projects-card-stats">
-            <div><span>{project.leftLabel}</span><strong>{project.leftValue}</strong></div>
-            <div><span>{project.rightLabel}</span><strong>{project.rightValue}</strong></div>
+            <div>
+              <span>{project.leftLabel}</span>
+              <strong>{project.leftValue}</strong>
+            </div>
+            <div>
+              <span>{project.rightLabel}</span>
+              <strong>{project.rightValue}</strong>
+            </div>
           </div>
         </div>
       </article>
     </Link>
-  )
+  );
 }
 
 export default function Projects() {
-  const [query] = useState("")
-  const [status, setStatus] = useState<"Tất cả" | ProjectStatus>("Tất cả")
-  const [projects, setProjects] = useState<ProjectItem[]>(initialProjects)
-  const [isCreateOpen, setIsCreateOpen] = useState(false)
+  const [query] = useState("");
+  const [status, setStatus] = useState<"Tất cả" | ProjectStatus>("Tất cả");
+  const [projects, setProjects] = useState<ListProjects>();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [reload, setReload] = useState(0);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    getProjects(controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) {
+          setProjects(data);
+          setError("");
+        }
+      })
+      .catch((error: unknown) => {
+        if (!controller.signal.aborted) setError(getProjectError(error));
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [reload]);
+
+  const retry = () => {
+    setLoading(true);
+    setError("");
+    setReload((value) => value + 1);
+  };
 
   const visibleProjects = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("vi")
+    const normalizedQuery = query.trim().toLocaleLowerCase("vi");
 
-    return projects.filter((project) => {
-      const matchesStatus = status === "Tất cả" || project.status === status
+    return projects?.data.filter((project) => {
+      const matchesStatus = status === "Tất cả" || project.status === status;
       const matchesQuery =
         !normalizedQuery ||
-        `${project.name} ${project.location} ${project.id}`.toLocaleLowerCase("vi").includes(normalizedQuery)
+        `${project.name} ${project.location} ${project.projectCode}`
+          .toLocaleLowerCase("vi")
+          .includes(normalizedQuery);
 
-      return matchesStatus && matchesQuery
-    })
-  }, [projects, query, status])
+      return matchesStatus && matchesQuery;
+    });
+  }, [projects, query, status]);
 
-  const createProject = (values: NewProjectValues) => {
-    setProjects((currentProjects) => [
-      ...currentProjects,
-      {
-        id: values.id.trim().toUpperCase(),
-        name: values.name.trim(),
-        location: values.location.trim(),
-        status: values.status,
-        progress: values.progress,
-        image: values.image?.trim() || "https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1000&q=85",
-        leftLabel: "Ngân sách dự kiến",
-        leftValue: `${new Intl.NumberFormat("vi-VN").format(values.budget)} VNĐ`,
-        rightLabel: "Nhân lực dự kiến",
-        rightValue: `${values.teamSize} người`,
-      },
-    ])
-    setIsCreateOpen(false)
-    toast.success("Đã tạo dự án mới")
-  }
+  const createProject = async (values: NewProjectValues) => {
+    try {
+      await createProjectRequest(toProjectData(values));
+    } catch (error) {
+      throw new Error(getProjectError(error));
+    }
+    setIsCreateOpen(false);
+    toast.success("Đã tạo dự án mới");
+    retry();
+  };
 
   return (
     <div className="projects-app">
@@ -160,41 +166,78 @@ export default function Projects() {
           <div className="projects-title-row">
             <div>
               <h1>Danh sách dự án</h1>
-              <p>Quản lý và theo dõi tiến độ thi công các công trình hiện tại.</p>
+              <p>
+                Quản lý và theo dõi tiến độ thi công các công trình hiện tại.
+              </p>
             </div>
 
             <div className="projects-page-actions">
               <label className="projects-filter">
                 <SlidersHorizontal size={17} />
-                <select value={status} onChange={(event) => setStatus(event.target.value as "Tất cả" | ProjectStatus)} aria-label="Lọc theo trạng thái">
+                <select
+                  value={status}
+                  onChange={(event) =>
+                    setStatus(event.target.value as "Tất cả" | ProjectStatus)
+                  }
+                  aria-label="Lọc theo trạng thái"
+                >
                   <option value="Tất cả">Lọc theo trạng thái</option>
                   <option value="Đang thi công">Đang thi công</option>
                   <option value="Lập kế hoạch">Lập kế hoạch</option>
                   <option value="Hoàn thành">Hoàn thành</option>
                 </select>
               </label>
-              <button type="button" className="projects-create-button" onClick={() => setIsCreateOpen(true)}>
+              <button
+                type="button"
+                className="projects-create-button"
+                onClick={() => setIsCreateOpen(true)}
+              >
                 <Plus size={19} />
                 Thêm dự án mới
               </button>
             </div>
           </div>
 
-          <div className="projects-grid">
-            {visibleProjects.slice(0, 3).map((project) => <ProjectCard key={project.id} project={project} />)}
-
-            {!query && status === "Tất cả" && (
-              <button type="button" className="projects-add-card" onClick={() => setIsCreateOpen(true)}>
-                <span className="projects-add-icon"><Plus size={32} strokeWidth={1.8} /></span>
-                <strong>Khởi tạo dự án mới</strong>
-                <span>Thiết lập các mốc tiến độ<br />và ngân sách cho công trình mới.</span>
+          {loading && <p role="status">Đang tải danh sách dự án...</p>}
+          {!loading && error && (
+            <div role="alert">
+              <p>{error}</p>
+              <button type="button" onClick={retry}>
+                Thử lại
               </button>
-            )}
+            </div>
+          )}
+          {!loading && !error && (
+            <div className="projects-grid">
+              {visibleProjects?.slice(0, 3).map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
 
-            {visibleProjects.slice(3).map((project) => <ProjectCard key={project.id} project={project} />)}
-          </div>
+              {!query && status === "Tất cả" && (
+                <button
+                  type="button"
+                  className="projects-add-card"
+                  onClick={() => setIsCreateOpen(true)}
+                >
+                  <span className="projects-add-icon">
+                    <Plus size={32} strokeWidth={1.8} />
+                  </span>
+                  <strong>Khởi tạo dự án mới</strong>
+                  <span>
+                    Thiết lập các mốc tiến độ
+                    <br />
+                    và ngân sách cho công trình mới.
+                  </span>
+                </button>
+              )}
 
-          {visibleProjects.length === 0 && (
+              {visibleProjects?.slice(3).map((project) => (
+                <ProjectCard key={project.id} project={project} />
+              ))}
+            </div>
+          )}
+
+          {!loading && !error && visibleProjects?.length === 0 && (
             <div className="projects-empty">
               <Search size={28} />
               <h2>Không tìm thấy dự án</h2>
@@ -203,17 +246,24 @@ export default function Projects() {
           )}
         </section>
 
-        <button type="button" className="projects-floating-create" aria-label="Tạo dự án mới" onClick={() => setIsCreateOpen(true)}>
+        <button
+          type="button"
+          className="projects-floating-create"
+          aria-label="Tạo dự án mới"
+          onClick={() => setIsCreateOpen(true)}
+        >
           <Plus size={31} />
         </button>
       </main>
 
       <AddProjectModal
         open={isCreateOpen}
-        existingIds={projects.map((project) => project.id)}
+        existingIds={
+          projects?.data?.map((project) => project.projectCode) ?? []
+        }
         onCancel={() => setIsCreateOpen(false)}
         onCreate={createProject}
       />
     </div>
-  )
+  );
 }

@@ -26,7 +26,7 @@ export type NewProjectValues = {
   id: string;
   name: string;
   location: string;
-  status: ProjectStatus;
+  status: string;
   progress: number;
   budget: number;
   teamSize: number;
@@ -37,7 +37,9 @@ type AddProjectModalProps = {
   open: boolean;
   existingIds: string[];
   onCancel: () => void;
-  onCreate: (values: NewProjectValues) => void;
+  onCreate: (values: NewProjectValues) => void | Promise<boolean | void>;
+  initialValues?: NewProjectValues;
+  mode?: "create" | "edit";
 };
 
 export default function AddProjectModal({
@@ -45,43 +47,59 @@ export default function AddProjectModal({
   existingIds,
   onCancel,
   onCreate,
+  initialValues,
+  mode = "create",
 }: AddProjectModalProps) {
   const formRef = useRef<HTMLFormElement>(null);
-  const [status, setStatus] = useState<ProjectStatus>("Lập kế hoạch");
+  const [status, setStatus] = useState(initialValues?.status ?? "Lập kế hoạch");
   const [idError, setIdError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   const closeModal = () => {
+    if (isSubmitting) return;
     formRef.current?.reset();
-    setStatus("Lập kế hoạch");
+    setStatus(initialValues?.status ?? "Lập kế hoạch");
     setIdError("");
+    setSubmitError("");
     onCancel();
   };
 
-  const submitProject = (event: FormEvent<HTMLFormElement>) => {
+  const submitProject = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (isSubmitting) return;
     const data = new FormData(event.currentTarget);
     const id = String(data.get("id") ?? "")
       .trim()
       .toUpperCase();
 
-    if (existingIds.includes(id)) {
+    if (existingIds.includes(id) && id !== initialValues?.id) {
       setIdError("Mã dự án đã tồn tại");
       return;
     }
 
-    onCreate({
-      id,
-      name: String(data.get("name") ?? "").trim(),
-      location: String(data.get("location") ?? "").trim(),
-      status,
-      progress: Number(data.get("progress")),
-      budget: Number(data.get("budget")),
-      teamSize: Number(data.get("teamSize")),
-      image: String(data.get("image") ?? "").trim() || undefined,
-    });
-    formRef?.current?.reset();
-    setStatus("Lập kế hoạch");
-    setIdError("");
+    setIsSubmitting(true);
+    setSubmitError("");
+    try {
+      const result = await onCreate({
+        id,
+        name: String(data.get("name") ?? "").trim(),
+        location: String(data.get("location") ?? "").trim(),
+        status,
+        progress: Number(data.get("progress")),
+        budget: Number(data.get("budget")),
+        teamSize: Number(data.get("teamSize")),
+        image: String(data.get("image") ?? "").trim() || undefined,
+      });
+      if (result === false) return;
+      formRef?.current?.reset();
+      setStatus(initialValues?.status ?? "Lập kế hoạch");
+      setIdError("");
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : "Không thể lưu dự án. Vui lòng thử lại.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -92,7 +110,7 @@ export default function AddProjectModal({
             <Building2 size={23} />
           </span>
           <div>
-            <DialogTitle>Khởi tạo dự án mới</DialogTitle>
+            <DialogTitle>{mode === "edit" ? "Chỉnh sửa dự án" : "Khởi tạo dự án mới"}</DialogTitle>
             <DialogDescription>
               Nhập thông tin cơ bản để bắt đầu quản lý công trình.
             </DialogDescription>
@@ -104,6 +122,7 @@ export default function AddProjectModal({
           className="add-project-dialog__form"
           onSubmit={submitProject}
         >
+          <fieldset disabled={isSubmitting} className="m-0 grid min-w-0 gap-4 border-0 p-0">
           <div className="grid gap-4 md:grid-cols-3">
             <div className="grid gap-2 md:col-span-2">
               <Label htmlFor="project-name">Tên dự án</Label>
@@ -112,6 +131,7 @@ export default function AddProjectModal({
                 <Input
                   id="project-name"
                   name="name"
+                  defaultValue={initialValues?.name}
                   maxLength={80}
                   placeholder="VD: Central Park Residence"
                   required
@@ -125,6 +145,7 @@ export default function AddProjectModal({
                 <Input
                   id="project-id"
                   name="id"
+                  defaultValue={initialValues?.id}
                   pattern="[A-Za-z0-9-]+"
                   placeholder="BF-2026-001"
                   aria-invalid={Boolean(idError)}
@@ -147,6 +168,7 @@ export default function AddProjectModal({
               <Input
                 id="project-location"
                 name="location"
+                defaultValue={initialValues?.location}
                 maxLength={120}
                 placeholder="Quận / Thành phố / Tỉnh"
                 required
@@ -159,12 +181,14 @@ export default function AddProjectModal({
               <Label>Trạng thái</Label>
               <Select
                 value={status}
-                onValueChange={(value) => setStatus(value as ProjectStatus)}
+                disabled={isSubmitting}
+                onValueChange={(value) => setStatus(value)}
               >
                 <SelectTrigger className="h-11 w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  {!["Lập kế hoạch", "Đang thi công", "Hoàn thành"].includes(status) && <SelectItem value={status}>{status}</SelectItem>}
                   <SelectItem value="Lập kế hoạch">Lập kế hoạch</SelectItem>
                   <SelectItem value="Đang thi công">Đang thi công</SelectItem>
                   <SelectItem value="Hoàn thành">Hoàn thành</SelectItem>
@@ -180,7 +204,7 @@ export default function AddProjectModal({
                   type="number"
                   min={0}
                   max={100}
-                  defaultValue={0}
+                  defaultValue={initialValues?.progress ?? 0}
                   required
                 />
                 <span>%</span>
@@ -196,6 +220,7 @@ export default function AddProjectModal({
                 <Input
                   id="project-budget"
                   name="budget"
+                  defaultValue={initialValues?.budget}
                   type="number"
                   min={0}
                   placeholder="0"
@@ -212,8 +237,8 @@ export default function AddProjectModal({
                   id="project-team"
                   name="teamSize"
                   type="number"
-                  min={1}
-                  defaultValue={1}
+                  min={0}
+                  defaultValue={initialValues?.teamSize ?? 1}
                   required
                 />
                 <span>người</span>
@@ -228,12 +253,14 @@ export default function AddProjectModal({
               <Input
                 id="project-image"
                 name="image"
+                defaultValue={initialValues?.image}
                 type="url"
                 placeholder="https://example.com/project.jpg"
               />
             </div>
           </div>
 
+          {submitError && <p role="alert" className="text-sm text-destructive">{submitError}</p>}
           <DialogFooter className="add-project-dialog__actions">
             <Button
               type="button"
@@ -244,9 +271,10 @@ export default function AddProjectModal({
               Hủy
             </Button>
             <Button type="submit" size="lg">
-              Tạo dự án
+              {isSubmitting ? "Đang lưu..." : mode === "edit" ? "Lưu thay đổi" : "Tạo dự án"}
             </Button>
           </DialogFooter>
+          </fieldset>
         </form>
       </DialogContent>
     </Dialog>
