@@ -1,37 +1,37 @@
-import { CircleHelp, CirclePlus, LogOut, UserRound } from "lucide-react"
-import type { ElementType } from "react"
-import { NavLink } from "react-router"
+import { CircleHelp, CirclePlus, LogOut, UserRound } from "lucide-react";
+import type { ElementType } from "react";
+import { NavLink } from "react-router";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { cn } from "@/lib/utils"
-import { defaultSections } from "@/utils"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { defaultSections } from "@/utils";
 
 export interface MenuItem {
-  title: string
-  url: string
-  icon: ElementType
+  title: string;
+  url: string;
+  icon: ElementType;
 }
 
 export interface MenuSection {
-  title?: string
-  items: MenuItem[]
+  title?: string;
+  items: MenuItem[];
 }
 
 export interface SidebarUser {
-  name: string
-  role: string
-  avatarUrl?: string
-  initials?: string
+  name: string;
+  role: string;
+  avatarUrl?: string;
+  initials?: string;
 }
 
 export interface SideBarProps {
-  sections?: MenuSection[]
-  brandName?: string
-  user?: SidebarUser
-  onLogout?: () => void
-  onNavigate?: () => void
+  sections?: MenuSection[];
+  brandName?: string;
+  user?: SidebarUser;
+  onLogout?: () => void;
+  onNavigate?: () => void;
 }
 
 const AppSideBar = ({
@@ -59,7 +59,9 @@ const AppSideBar = ({
             boxShadow: "0 8px 18px rgba(0, 121, 111, 0.24)",
           }}
         />
-        <span className="truncate text-xl font-bold tracking-tight">{brandName}</span>
+        <span className="truncate text-xl font-bold tracking-tight">
+          {brandName}
+        </span>
       </NavLink>
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
@@ -151,7 +153,11 @@ const AppSideBar = ({
           >
             <Avatar className="size-10 border border-white shadow-sm">
               {user.avatarUrl ? (
-                <img src={user.avatarUrl} alt={user.name} className="size-full object-cover" />
+                <img
+                  src={user.avatarUrl}
+                  alt={user.name}
+                  className="size-full object-cover"
+                />
               ) : (
                 <AvatarFallback className="bg-[#007f73] text-xs font-bold text-white">
                   {user.initials || user.name.charAt(0).toUpperCase()}
@@ -160,7 +166,9 @@ const AppSideBar = ({
             </Avatar>
 
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-bold leading-4 text-slate-900">{user.name}</p>
+              <p className="truncate text-sm font-bold leading-4 text-slate-900">
+                {user.name}
+              </p>
               <p className="mt-1 truncate text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-500">
                 {user.role}
               </p>
@@ -173,8 +181,8 @@ const AppSideBar = ({
               aria-label="Đăng xuất"
               title="Đăng xuất"
               onClick={() => {
-                onNavigate?.()
-                onLogout?.()
+                onNavigate?.();
+                onLogout?.();
               }}
               className="text-slate-600 hover:bg-white hover:text-rose-600"
             >
@@ -184,7 +192,7 @@ const AppSideBar = ({
         )}
       </div>
     </aside>
-  )
-}
+  );
+};
 
-export default AppSideBar
+export default AppSideBar;

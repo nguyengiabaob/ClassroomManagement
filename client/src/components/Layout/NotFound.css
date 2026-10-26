@@ -1,0 +1,140 @@
+.nf-page {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* Signature move: split 4-0-4 floating digits with staggered phase */
+@keyframes nf-float-digit {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+}
+
+/* Searching compass needle sweep */
+@keyframes nf-compass-sweep {
+  0%,
+  100% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(22deg);
+  }
+}
+
+/* Expanding pulse ring behind the center badge */
+@keyframes nf-pulse-ring {
+  0% {
+    transform: scale(0.88);
+    opacity: 0.55;
+  }
+  70%,
+  100% {
+    transform: scale(1.38);
+    opacity: 0;
+  }
+}
+
+/* Choreographed staggered entrance */
+@keyframes nf-rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.nf-reveal-1 {
+  animation: nf-rise-in 750ms var(--ease-expo) both;
+}
+
+.nf-reveal-2 {
+  animation: nf-rise-in 750ms var(--ease-expo) 90ms both;
+}
+
+.nf-reveal-3 {
+  animation: nf-rise-in 750ms var(--ease-expo) 180ms both;
+}
+
+.nf-reveal-4 {
+  animation: nf-rise-in 750ms var(--ease-expo) 270ms both;
+}
+
+.nf-digit-left {
+  display: inline-block;
+  animation: nf-float-digit 4.2s var(--ease-in-out) infinite;
+}
+
+.nf-digit-zero {
+  display: inline-block;
+  animation: nf-float-digit 4.2s var(--ease-in-out) -1.4s infinite;
+}
+
+.nf-digit-right {
+  display: inline-block;
+  animation: nf-float-digit 4.2s var(--ease-in-out) -2.8s infinite;
+}
+
+.nf-compass-icon {
+  animation: nf-compass-sweep 2.8s var(--ease-in-out) infinite;
+}
+
+.nf-pulse {
+  position: absolute;
+  inset: -4px;
+  border-radius: 9999px;
+  border: 1.5px solid #00796f;
+  pointer-events: none;
+  animation: nf-pulse-ring 2.6s var(--ease-out) infinite;
+}
+
+/* Tactile button feedback */
+.nf-btn {
+  transition:
+    transform 160ms var(--ease-out),
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.nf-btn:hover {
+  transform: translate3d(0, -2px, 0);
+}
+
+.nf-btn:active {
+  transform: translate3d(0, 0, 0) scale(0.97);
+}
+
+.nf-btn-back svg {
+  transition: transform 180ms var(--ease-out);
+}
+
+.nf-btn-back:hover svg {
+  transform: translate3d(-3px, 0, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nf-reveal-1,
+  .nf-reveal-2,
+  .nf-reveal-3,
+  .nf-reveal-4,
+  .nf-digit-left,
+  .nf-digit-zero,
+  .nf-digit-right,
+  .nf-compass-icon,
+  .nf-pulse {
+    animation: none !important;
+  }
+
+  .nf-btn,
+  .nf-btn-back svg {
+    transition: none !important;
+  }
+}
+

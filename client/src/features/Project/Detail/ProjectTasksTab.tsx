@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock,
+  Eye,
   HardHat,
   Hash,
   Layers,
@@ -15,6 +16,7 @@ import {
   Trash2,
   UserCheck,
 } from "lucide-react";
+import { Link } from "react-router";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -637,7 +639,15 @@ export default function ProjectTasksTab({ project }: { project: ProjectItem }) {
                     </span>
                   </div>
 
-                  <h3 className="project-task-title">{task.title}</h3>
+                  <h3 className="project-task-title">
+                    <Link
+                      to={`/tasks/${task.code}`}
+                      state={{ task, project }}
+                      className="hover:text-[#00796f] hover:underline"
+                    >
+                      {task.title}
+                    </Link>
+                  </h3>
                   {task.description && (
                     <p className="project-task-desc">{task.description}</p>
                   )}
@@ -665,6 +675,15 @@ export default function ProjectTasksTab({ project }: { project: ProjectItem }) {
                 </div>
 
                 <div className="project-task-actions">
+                  <Link
+                    to={`/tasks/${task.code}`}
+                    state={{ task, project }}
+                    className="project-task-icon-btn"
+                    aria-label={`Xem chi tiết ${task.title}`}
+                    title="Xem chi tiết công việc"
+                  >
+                    <Eye size={16} />
+                  </Link>
                   <button
                     type="button"
                     className="project-task-icon-btn"
