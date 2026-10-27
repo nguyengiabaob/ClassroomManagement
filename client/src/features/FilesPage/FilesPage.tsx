@@ -21,7 +21,13 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +54,14 @@ import {
   uploadFiles,
 } from "./fileService";
 import type { fileItem, fileKind } from "./fileService";
+
+interface ApiError {
+  response?: {
+    data: {
+      message: string;
+    };
+  };
+}
 
 type ViewMode = "list" | "grid";
 
@@ -82,14 +96,18 @@ const getStoredFolders = (): string[] => {
   try {
     const raw = localStorage.getItem(FOLDERS_STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-  } catch {}
+  } catch {
+    //
+  }
   return DEFAULT_FOLDERS;
 };
 
 const saveStoredFolders = (folders: string[]) => {
   try {
     localStorage.setItem(FOLDERS_STORAGE_KEY, JSON.stringify(folders));
-  } catch {}
+  } catch {
+    //
+  }
 };
 
 const FileIcon = ({ kind, size = 24 }: { kind: fileKind; size?: number }) => {
@@ -149,78 +167,78 @@ const FilesPage = () => {
   const [deleting, setDeleting] = useState<boolean>(false);
 
   // Load files from backend API and combine with folders
-  const loadFiles = useCallback(
-    async (search?: string) => {
-      setLoading(true);
-      try {
-        const queryTerm = search !== undefined ? search : searchQuery;
-        const res = await getFiles({
-          search: queryTerm.trim() || undefined,
-          pageSize: 50,
-        });
+  const loadFiles = async (search?: string) => {
+    setLoading(true);
+    try {
+      const queryTerm = search !== undefined ? search : searchQuery;
+      const res = await getFiles({
+        search: queryTerm.trim() || undefined,
+        pageSize: 50,
+      });
 
-        const serverFiles = extractFileList(res.data);
-        const storedFolderPaths = getStoredFolders();
+      const serverFiles = extractFileList(res.data);
+      const storedFolderPaths = getStoredFolders();
 
-        // Convert all stored folder paths to fileItem objects
-        const folderItems: fileItem[] = storedFolderPaths
-          .filter((folderPath) => {
-            if (!queryTerm.trim()) return true;
-            return folderPath
-              .toLowerCase()
-              .includes(queryTerm.trim().toLowerCase());
-          })
-          .map((folderPath, idx) => {
-            const displayName = getFolderName(folderPath);
-            const parent = getParentPath(folderPath);
+      // Convert all stored folder paths to fileItem objects
+      const folderItems: fileItem[] = storedFolderPaths
+        .filter((folderPath) => {
+          if (!queryTerm.trim()) return true;
+          return folderPath
+            .toLowerCase()
+            .includes(queryTerm.trim().toLowerCase());
+        })
+        .map((folderPath, idx) => {
+          const displayName = getFolderName(folderPath);
+          const parent = getParentPath(folderPath);
 
-            return {
-              id: -1 * (idx + 1),
-              name: displayName,
-              kind: "folder" as fileKind,
-              owner: "Ban Quản Lý",
-              initials: "BQL",
-              ownerTone: "amber",
-              modified: parent ? `Thư mục con (${parent})` : "Thư mục gốc",
-              size: "-",
-              folder: parent,
-              path: folderPath,
-            };
-          });
-
-        // Combine folders first, then server files
-        setFiles([...folderItems, ...serverFiles]);
-      } catch (err: unknown) {
-        console.error("Error loading files:", err);
-        toast.error("Không thể tải danh sách tệp từ máy chủ");
-
-        // Fallback: render at least stored folders
-        const storedFolderPaths = getStoredFolders();
-        const folderItems: fileItem[] = storedFolderPaths.map(
-          (folderPath, idx) => ({
+          return {
             id: -1 * (idx + 1),
-            name: getFolderName(folderPath),
+            name: displayName,
             kind: "folder" as fileKind,
             owner: "Ban Quản Lý",
             initials: "BQL",
             ownerTone: "amber",
-            modified: "Thư mục hệ thống",
+            modified: parent ? `Thư mục con (${parent})` : "Thư mục gốc",
             size: "-",
-            folder: getParentPath(folderPath),
+            folder: parent,
             path: folderPath,
-          }),
-        );
-        setFiles(folderItems);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [searchQuery],
-  );
+          };
+        });
+
+      // Combine folders first, then server files
+      setFiles([...folderItems, ...serverFiles]);
+    } catch (err: unknown) {
+      console.error("Error loading files:", err);
+      toast.error("Không thể tải danh sách tệp từ máy chủ");
+
+      // Fallback: render at least stored folders
+      const storedFolderPaths = getStoredFolders();
+      const folderItems: fileItem[] = storedFolderPaths.map(
+        (folderPath, idx) => ({
+          id: -1 * (idx + 1),
+          name: getFolderName(folderPath),
+          kind: "folder" as fileKind,
+          owner: "Ban Quản Lý",
+          initials: "BQL",
+          ownerTone: "amber",
+          modified: "Thư mục hệ thống",
+          size: "-",
+          folder: getParentPath(folderPath),
+          path: folderPath,
+        }),
+      );
+      setFiles(folderItems);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    loadFiles();
-  }, []);
+    const initialLoad = () => {
+      loadFiles();
+    };
+    initialLoad();
+  }, [searchQuery]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -253,13 +271,14 @@ const FilesPage = () => {
         id: toastId,
       });
       await loadFiles();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Upload error:", err);
-      toast.error(
-        err?.response?.data?.message ||
-          "Tải lên tệp thất bại. Vui lòng thử lại.",
-        { id: toastId },
-      );
+      const errorMessage = (
+        err as { response?: { data?: { message?: string } } }
+      )?.response?.data?.message;
+      toast.error(errorMessage || "Tải lên tệp thất bại. Vui lòng thử lại.", {
+        id: toastId,
+      });
     } finally {
       setUploading(false);
     }
@@ -310,7 +329,7 @@ const FilesPage = () => {
       setIsCreateFolderOpen(false);
       setNewFolderName("");
       await loadFiles();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Create folder error:", err);
       // Fallback: lưu cục bộ để giao diện luôn hiển thị đầy đủ
       const current = getStoredFolders();
@@ -356,7 +375,7 @@ const FilesPage = () => {
         try {
           await updateFolder(oldPath, newPath);
         } catch (backendErr) {
-          console.warn("Backend updateFolder failed, updating locally", backendErr);
+          console.warn("update failed", backendErr);
         }
 
         // 2. Cập nhật stored folders: đổi cả path này và tất cả các folder con bên trong nó
@@ -390,10 +409,12 @@ const FilesPage = () => {
       setRenameItem(null);
       setRenameValue("");
       await loadFiles();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Rename error:", err);
+      const errorMessages = err as ApiError;
       toast.error(
-        err?.response?.data?.message || "Đổi tên thất bại. Vui lòng thử lại.",
+        errorMessages?.response?.data?.message ||
+          "Đổi tên thất bại. Vui lòng thử lại.",
         { id: toastId },
       );
     } finally {
@@ -421,7 +442,10 @@ const FilesPage = () => {
         try {
           await deleteFolder(targetPath);
         } catch (backendErr) {
-          console.warn("Backend deleteFolder failed, removing locally", backendErr);
+          console.warn(
+            "Backend deleteFolder failed, removing locally",
+            backendErr,
+          );
         }
 
         // 2. Xóa khỏi stored folders (xóa cả targetPath và các con của nó)
@@ -448,10 +472,11 @@ const FilesPage = () => {
 
       setDeleteItem(null);
       await loadFiles();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Delete error:", err);
+      const error = err as ApiError;
       toast.error(
-        err?.response?.data?.message || "Xóa thất bại. Vui lòng thử lại.",
+        error?.response?.data?.message || "Xóa thất bại. Vui lòng thử lại.",
         { id: toastId },
       );
     } finally {
@@ -556,7 +581,8 @@ const FilesPage = () => {
             Quản lý Hồ sơ &amp; Bản vẽ
           </h1>
           <p className="mt-1 text-[14px] text-[#55515a] md:text-[16px]">
-            Hệ thống lưu trữ và kiểm soát tài liệu kỹ thuật tập trung theo phân cấp thư mục.
+            Hệ thống lưu trữ và kiểm soát tài liệu kỹ thuật tập trung theo phân
+            cấp thư mục.
           </p>
         </div>
 
@@ -728,7 +754,9 @@ const FilesPage = () => {
         {loading && displayedFiles.length === 0 ? (
           <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 text-slate-500">
             <Loader2 size={32} className="animate-spin text-[#00766b]" />
-            <p className="text-sm font-medium">Đang tải danh sách tài liệu...</p>
+            <p className="text-sm font-medium">
+              Đang tải danh sách tài liệu...
+            </p>
           </div>
         ) : displayedFiles.length === 0 ? (
           <div className="flex min-h-[260px] flex-col items-center justify-center gap-3 px-4 py-12 text-center text-slate-500">
@@ -814,7 +842,9 @@ const FilesPage = () => {
                   <OwnerBadge item={item} />
 
                   {/* Date / Position */}
-                  <span className="text-[#55515a] text-xs">{item.modified}</span>
+                  <span className="text-[#55515a] text-xs">
+                    {item.modified}
+                  </span>
 
                   {/* Size / Item count */}
                   <span className="text-[#55515a] font-medium text-xs">
@@ -1018,7 +1048,8 @@ const FilesPage = () => {
                 htmlFor="folder-name-input"
                 className="text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
-                Tên thư mục {currentFolder ? "con" : ""} <span className="text-rose-500">*</span>
+                Tên thư mục {currentFolder ? "con" : ""}{" "}
+                <span className="text-rose-500">*</span>
               </label>
               <div className="relative flex items-center">
                 <Folder
@@ -1194,7 +1225,8 @@ const FilesPage = () => {
             </p>
             {deleteItem?.kind === "folder" && (
               <p className="mt-2 rounded-lg bg-rose-50 p-2 text-xs text-rose-600">
-                Lưu ý: Tất cả các thư mục con và tệp tin bên trong thư mục này cũng sẽ bị xóa vĩnh viễn.
+                Lưu ý: Tất cả các thư mục con và tệp tin bên trong thư mục này
+                cũng sẽ bị xóa vĩnh viễn.
               </p>
             )}
 
