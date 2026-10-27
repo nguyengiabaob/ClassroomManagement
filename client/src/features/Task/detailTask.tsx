@@ -1,15 +1,25 @@
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  type ChangeEvent,
+  type FormEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ArrowLeft,
   CalendarDays,
   Camera,
   Check,
   CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
   ClipboardCheck,
   Clock,
   Download,
   FileText,
   HardHat,
+  ImagePlus,
   Layers,
   MapPin,
   Package,
@@ -21,6 +31,8 @@ import {
   Trash2,
   TrendingUp,
   UsersRound,
+  X,
+  ZoomIn,
 } from "lucide-react";
 import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
@@ -200,6 +212,80 @@ const ASSIGNEE_OPTIONS = [
   "KTS. Phạm Thu Hà",
   "Tổ trưởng Đặng Quốc Khánh",
   "KS. Vũ Hoàng Long",
+];
+
+interface TaskCrewMember {
+  id: number;
+  code: string;
+  fullName: string;
+  role: string;
+  shift: string;
+}
+
+const TASK_CREW_ROSTER: TaskCrewMember[] = [
+  {
+    id: 1,
+    code: "CF-NV04",
+    fullName: "Đặng Quốc Khánh",
+    role: "Tổ trưởng thi công cốt thép",
+    shift: "Ca ngày",
+  },
+  {
+    id: 2,
+    code: "CF-NV06",
+    fullName: "KS. Vũ Hoàng Long",
+    role: "Kỹ sư Trắc đạc & QA/QC",
+    shift: "Ca ngày",
+  },
+  {
+    id: 3,
+    code: "CF-NV02",
+    fullName: "KS. Lê Minh Hiếu",
+    role: "Kỹ sư Phối hợp M&E",
+    shift: "Ca ngày",
+  },
+  {
+    id: 4,
+    code: "CF-NV03",
+    fullName: "KS. Trần Đình Tú",
+    role: "Giám sát An toàn HSE",
+    shift: "Ca ngày",
+  },
+  {
+    id: 5,
+    code: "CF-NV05",
+    fullName: "KTS. Phạm Thu Hà",
+    role: "Kỹ sư Hồ sơ Shopdrawing",
+    shift: "Ca ngày",
+  },
+  {
+    id: 6,
+    code: "CF-CN08",
+    fullName: "Nguyễn Hữu Phước",
+    role: "Thợ bậc 5/7 · Hàn & Lắp dựng",
+    shift: "Ca ngày",
+  },
+  {
+    id: 7,
+    code: "CF-CN09",
+    fullName: "Trương Văn Hòa",
+    role: "Thợ bậc 5/7 · Cốp pha & Giàn giáo",
+    shift: "Ca ngày",
+  },
+  {
+    id: 8,
+    code: "CF-CN11",
+    fullName: "Bùi Thanh Tùng",
+    role: "Vận hành thiết bị & Máy đo",
+    shift: "Ca tăng cường",
+  },
+  {
+    id: 9,
+    code: "CF-CN12",
+    fullName: "Lý Minh Tâm",
+    role: "Tổ đội bê tông & Bảo dưỡng",
+    shift: "Ca tăng cường",
+  },
 ];
 
 function getExtraStorageKey(taskCode: string) {
@@ -557,6 +643,10 @@ export function DetailTask({
   const [newStepTitle, setNewStepTitle] = useState("");
   const [newComment, setNewComment] = useState("");
 
+  // Photo gallery & upload state
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   // Edit Modal state
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [editTitle, setEditTitle] = useState("");
@@ -818,6 +908,165 @@ export function DetailTask({
     toast.success("Đã lưu thông tin hạng mục công việc");
   };
 
+  const compressImageFile = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(new Error("File read failed"));
+      reader.onload = () => {
+        const rawDataUrl = String(reader.result || "");
+        const img = new Image();
+        img.onerror = () => resolve(rawDataUrl);
+        img.onload = () => {
+          const maxDim = 1280;
+          const scale = Math.min(
+            1,
+            maxDim / Math.max(img.width || 1, img.height || 1),
+          );
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(rawDataUrl);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          resolve(canvas.toDataURL("image/jpeg", 0.84));
+        };
+        img.src = rawDataUrl;
+      };
+      reader.readAsDataURL(file);
+    });
+
+  const handleUploadPhotos = async (event: ChangeEvent<HTMLInputElement>) => {
+    const fileList = event.target.files;
+    if (!fileList || fileList.length === 0) return;
+
+    const files = Array.from(fileList).filter((f) =>
+      f.type.startsWith("image/"),
+    );
+    event.target.value = "";
+
+    if (files.length === 0) {
+      toast.error("Vui lòng chọn tệp hình ảnh hợp lệ (JPG, PNG, WEBP)");
+      return;
+    }
+
+    try {
+      const dataUrls = await Promise.all(files.map(compressImageFile));
+      const now = new Date();
+      const dateStr = now.toLocaleDateString("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+      });
+      const timeStr = now.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const stamp = `${dateStr} · ${timeStr}`;
+
+      let nextId =
+        extra.photos.reduce((max, p) => Math.max(max, p.id), 0) + 1;
+
+      const uploadedItems: TaskPhotoEvidence[] = files.map((file, idx) => {
+        const cleanTitle =
+          file.name.replace(/\.[^/.]+$/, "").replace(/[-_]+/g, " ") ||
+          `Ảnh hiện trường #${nextId}`;
+        const item: TaskPhotoEvidence = {
+          id: nextId,
+          title: cleanTitle,
+          caption: `${stamp} · Tải lên từ hiện trường`,
+          imageUrl: dataUrls[idx],
+        };
+        nextId += 1;
+        return item;
+      });
+
+      const nextPhotos = [...uploadedItems, ...extra.photos];
+      persistExtraChange({
+        ...extra,
+        photos: nextPhotos,
+      });
+      toast.success(
+        `Đã tải lên ${uploadedItems.length} ảnh nghiệm thu hiện trường`,
+      );
+    } catch {
+      toast.error("Không thể xử lý ảnh tải lên, vui lòng thử lại");
+    }
+  };
+
+  const handleDeletePhoto = (photoId: number) => {
+    const nextPhotos = extra.photos.filter((p) => p.id !== photoId);
+    persistExtraChange({
+      ...extra,
+      photos: nextPhotos,
+    });
+    if (previewIndex !== null) {
+      if (nextPhotos.length === 0) {
+        setPreviewIndex(null);
+      } else if (previewIndex >= nextPhotos.length) {
+        setPreviewIndex(nextPhotos.length - 1);
+      }
+    }
+    toast.success("Đã xóa ảnh khỏi hồ sơ nghiệm thu");
+  };
+
+  const handlePrevPhoto = () => {
+    if (extra.photos.length === 0) return;
+    setPreviewIndex((prev) =>
+      prev === null
+        ? 0
+        : (prev - 1 + extra.photos.length) % extra.photos.length,
+    );
+  };
+
+  const handleNextPhoto = () => {
+    if (extra.photos.length === 0) return;
+    setPreviewIndex((prev) =>
+      prev === null ? 0 : (prev + 1) % extra.photos.length,
+    );
+  };
+
+  useEffect(() => {
+    if (previewIndex === null) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        setPreviewIndex((prev) =>
+          prev === null || extra.photos.length === 0
+            ? prev
+            : (prev - 1 + extra.photos.length) % extra.photos.length,
+        );
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        setPreviewIndex((prev) =>
+          prev === null || extra.photos.length === 0
+            ? prev
+            : (prev + 1) % extra.photos.length,
+        );
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        setPreviewIndex(null);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [previewIndex, extra.photos.length]);
+
+  const activePreviewPhoto =
+    previewIndex !== null ? extra.photos[previewIndex] ?? null : null;
+
+  const { visibleCrew, restCrew } = useMemo(() => {
+    const filtered = TASK_CREW_ROSTER.filter(
+      (member) =>
+        member.fullName.toLowerCase() !== currentTask.assignee.toLowerCase(),
+    );
+    return {
+      visibleCrew: filtered.slice(0, 2),
+      restCrew: filtered.slice(2),
+    };
+  }, [currentTask.assignee]);
+
   return (
     <section
       className="td-page"
@@ -1058,10 +1307,72 @@ export function DetailTask({
             </div>
 
             <div className="td-crew-grid">
-              <div className="td-crew-stat">
-                <span>Quân số thi công trực tiếp</span>
-                <strong>{extra.crewSize} kỹ sư & công nhân</strong>
+              <div className="td-crew-stat is-roster">
+                <div className="td-crew-stat-head">
+                  <span>Quân số thi công trực tiếp</span>
+                  <span className="td-crew-total-pill">
+                    {visibleCrew.length + restCrew.length} nhân sự
+                  </span>
+                </div>
+
+                <div className="td-crew-inline-list">
+                  {visibleCrew.map((member) => (
+                    <div key={member.id} className="td-crew-person-pill">
+                      <span className="td-crew-mini-avatar">
+                        {getInitials(member.fullName)}
+                      </span>
+                      <span className="td-crew-person-name">
+                        {member.fullName}
+                      </span>
+                    </div>
+                  ))}
+
+                  {restCrew.length > 0 && (
+                    <div className="td-crew-more-wrap" tabIndex={0}>
+                      <span
+                        className="td-crew-more-badge"
+                        aria-label={`Xem thêm ${restCrew.length} nhân sự trong tổ đội`}
+                      >
+                        +{restCrew.length}
+                      </span>
+
+                      <div
+                        className="td-crew-popup"
+                        data-ui="crew-popup"
+                        role="tooltip"
+                      >
+                        <div className="td-crew-popup-head">
+                          <strong>Nhân sự tham gia hạng mục</strong>
+                          <span>+{restCrew.length} thành viên khác</span>
+                        </div>
+
+                        <div className="td-crew-popup-list">
+                          {restCrew.map((member) => (
+                            <div
+                              key={member.id}
+                              className="td-crew-popup-item"
+                            >
+                              <span className="td-crew-popup-avatar">
+                                {getInitials(member.fullName)}
+                              </span>
+                              <div className="td-crew-popup-info">
+                                <div className="td-crew-popup-row">
+                                  <strong>{member.fullName}</strong>
+                                  <code>{member.code}</code>
+                                </div>
+                                <span>
+                                  {member.role} · {member.shift}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
+
               <div className="td-crew-stat">
                 <span>Ca trực hiện trường</span>
                 <strong>07:00 – 17:30</strong>
@@ -1290,16 +1601,66 @@ export function DetailTask({
                   <Camera size={19} />
                   Hình ảnh nghiệm thu thực tế tại hiện trường
                 </h3>
-                <span className="td-section-pill">
-                  {extra.photos.length} ảnh đối chứng
-                </span>
+                <div className="td-photo-head-actions">
+                  <span className="td-section-pill">
+                    {extra.photos.length} ảnh đối chứng
+                  </span>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleUploadPhotos}
+                    className="hidden"
+                    aria-label="Tải ảnh nghiệm thu hiện trường"
+                  />
+                  <button
+                    type="button"
+                    className="td-upload-btn"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <ImagePlus size={15} />
+                    Tải ảnh lên
+                  </button>
+                </div>
               </div>
 
               <div className="td-photo-grid">
-                {extra.photos.map((photo) => (
-                  <div key={photo.id} className="td-photo-card">
+                {extra.photos.map((photo, index) => (
+                  <div
+                    key={photo.id}
+                    className="td-photo-card"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setPreviewIndex(index)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setPreviewIndex(index);
+                      }
+                    }}
+                    aria-label={`Xem phóng to ảnh: ${photo.title}`}
+                  >
                     <div className="td-photo-thumb">
                       <img src={photo.imageUrl} alt={photo.title} />
+                      <div className="td-photo-overlay">
+                        <span className="td-photo-zoom-badge">
+                          <ZoomIn size={13} />
+                          Xem ảnh
+                        </span>
+                        <button
+                          type="button"
+                          className="td-photo-del-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeletePhoto(photo.id);
+                          }}
+                          aria-label={`Xóa ảnh ${photo.title}`}
+                          title="Xóa ảnh"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                     <div className="td-photo-caption">
                       <strong>{photo.title}</strong>
@@ -1307,6 +1668,18 @@ export function DetailTask({
                     </div>
                   </div>
                 ))}
+
+                <button
+                  type="button"
+                  className="td-photo-dropcard"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <span className="td-photo-drop-icon">
+                    <ImagePlus size={20} />
+                  </span>
+                  <strong>Thêm ảnh hiện trường</strong>
+                  <span>JPG, PNG, WEBP · Chọn nhiều ảnh</span>
+                </button>
               </div>
             </article>
           </div>
@@ -1697,6 +2070,116 @@ export function DetailTask({
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Site Photo Gallery Lightbox Modal */}
+      {activePreviewPhoto && previewIndex !== null && (
+        <div
+          className="td-lightbox"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Trình xem ảnh nghiệm thu hiện trường"
+          onClick={() => setPreviewIndex(null)}
+        >
+          <div
+            className="td-lightbox-shell"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Top Bar */}
+            <header className="td-lightbox-top">
+              <div className="td-lightbox-meta">
+                <span className="td-lightbox-counter">
+                  {previewIndex + 1} / {extra.photos.length}
+                </span>
+                <div className="td-lightbox-titles">
+                  <strong>{activePreviewPhoto.title}</strong>
+                  <span>
+                    {activePreviewPhoto.caption} · {currentTask.code}
+                  </span>
+                </div>
+              </div>
+
+              <div className="td-lightbox-actions">
+                <button
+                  type="button"
+                  className="td-lightbox-icon-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Tải thêm ảnh"
+                  aria-label="Tải thêm ảnh"
+                >
+                  <ImagePlus size={17} />
+                </button>
+                <button
+                  type="button"
+                  className="td-lightbox-icon-btn is-danger"
+                  onClick={() => handleDeletePhoto(activePreviewPhoto.id)}
+                  title="Xóa ảnh này"
+                  aria-label="Xóa ảnh này"
+                >
+                  <Trash2 size={17} />
+                </button>
+                <button
+                  type="button"
+                  className="td-lightbox-icon-btn"
+                  onClick={() => setPreviewIndex(null)}
+                  title="Đóng (Esc)"
+                  aria-label="Đóng trình xem ảnh"
+                >
+                  <X size={19} />
+                </button>
+              </div>
+            </header>
+
+            {/* Main Stage with Left & Right Arrow Navigation */}
+            <div className="td-lightbox-stage">
+              <button
+                type="button"
+                className="td-lightbox-nav is-prev"
+                onClick={handlePrevPhoto}
+                disabled={extra.photos.length <= 1}
+                aria-label="Ảnh trước (Mũi tên trái)"
+                title="Ảnh trước (←)"
+              >
+                <ChevronLeft size={24} />
+              </button>
+
+              <figure className="td-lightbox-figure">
+                <img
+                  src={activePreviewPhoto.imageUrl}
+                  alt={activePreviewPhoto.title}
+                />
+              </figure>
+
+              <button
+                type="button"
+                className="td-lightbox-nav is-next"
+                onClick={handleNextPhoto}
+                disabled={extra.photos.length <= 1}
+                aria-label="Ảnh tiếp theo (Mũi tên phải)"
+                title="Ảnh tiếp theo (→)"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
+
+            {/* Bottom Filmstrip Thumbnails */}
+            <footer className="td-lightbox-strip">
+              {extra.photos.map((photo, idx) => (
+                <button
+                  key={photo.id}
+                  type="button"
+                  className={`td-lightbox-thumb ${
+                    idx === previewIndex ? "is-active" : ""
+                  }`}
+                  onClick={() => setPreviewIndex(idx)}
+                  aria-label={`Chuyển tới ảnh ${idx + 1}: ${photo.title}`}
+                >
+                  <img src={photo.imageUrl} alt={photo.title} />
+                </button>
+              ))}
+            </footer>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

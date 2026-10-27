@@ -198,7 +198,44 @@ export default function Projects() {
             </div>
           </div>
 
-          {loading && <p role="status">Đang tải danh sách dự án...</p>}
+          {loading && (
+            <div
+              className="projects-loading-state"
+              role="status"
+              aria-live="polite"
+            >
+              <div className="projects-spinner-card">
+                <div className="projects-spinner-visual" aria-hidden="true">
+                  <span className="projects-spinner-ring" />
+                  <span className="projects-spinner-core" />
+                </div>
+                <div className="projects-spinner-copy">
+                  <strong>Đang tải danh sách dự án...</strong>
+                  <span>
+                    Đồng bộ dữ liệu tiến độ thi công, ngân sách và hồ sơ công
+                    trình
+                  </span>
+                </div>
+              </div>
+
+              <div className="projects-grid projects-skeleton-grid" aria-hidden="true">
+                {[0, 1, 2].map((item) => (
+                  <div key={item} className="projects-skeleton-card">
+                    <div className="projects-skeleton-Banner" />
+                    <div className="projects-skeleton-body">
+                      <span className="projects-skeleton-line is-title" />
+                      <span className="projects-skeleton-line is-sub" />
+                      <span className="projects-skeleton-line is-bar" />
+                      <div className="projects-skeleton-stats">
+                        <span className="projects-skeleton-line is-stat" />
+                        <span className="projects-skeleton-line is-stat" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {!loading && error && (
             <div role="alert">
               <p>{error}</p>
