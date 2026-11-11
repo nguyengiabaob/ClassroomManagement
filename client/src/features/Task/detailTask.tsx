@@ -649,6 +649,9 @@ export function DetailTask({
 
   // Edit Modal state
   const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isSubtaskOpen, setIsSubtaskOpen] = useState(false);
+  const [subtaskTitle, setSubtaskTitle] = useState("");
+  const [subtasks, setSubtasks] = useState<ProjectTask[]>([]);
   const [editTitle, setEditTitle] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editCategory, setEditCategory] = useState<TaskCategory>("Kết cấu");
@@ -664,6 +667,53 @@ export function DetailTask({
     setActiveProjectCode(initialResolved.projectCode);
     setExtra(loadExtraState(initialResolved.task));
   }, [initialResolved]);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`cm_project_tasks_v1_${activeProjectId}`);
+      const tasks = raw ? (JSON.parse(raw) as ProjectTask[]) : [];
+      setSubtasks(
+        Array.isArray(tasks)
+          ? tasks.filter((task) => task.parentTaskId === currentTask.id)
+          : [],
+      );
+    } catch {
+      setSubtasks([]);
+    }
+  }, [activeProjectId, currentTask.id]);
+
+  const handleCreateSubtask = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const title = subtaskTitle.trim();
+    if (!title) return;
+
+    try {
+      const key = `cm_project_tasks_v1_${activeProjectId}`;
+      const raw = localStorage.getItem(key);
+      const tasks = raw ? (JSON.parse(raw) as ProjectTask[]) : [currentTask];
+      if (!Array.isArray(tasks)) throw new Error("Invalid task list");
+      const siblings = tasks.filter((task) => task.parentTaskId === currentTask.id);
+      const nextId = tasks.reduce((max, task) => Math.max(max, task.id), 0) + 1;
+      const subtask: ProjectTask = {
+        ...currentTask,
+        id: nextId,
+        parentTaskId: currentTask.id,
+        code: `${currentTask.code}.${siblings.length + 1}`,
+        title,
+        description: "",
+        status: "Cần làm",
+        priority: "Trung bình",
+        progress: 0,
+      };
+      localStorage.setItem(key, JSON.stringify([...tasks, subtask]));
+      setSubtasks((current) => [...current, subtask]);
+      setSubtaskTitle("");
+      setIsSubtaskOpen(false);
+      toast.success("Đã thêm công việc con");
+    } catch {
+      toast.error("Không thể lưu công việc con, vui lòng thử lại");
+    }
+  };
 
   const persistTaskChange = (updated: ProjectTask) => {
     setCurrentTask(updated);
@@ -1162,6 +1212,14 @@ export function DetailTask({
             <button
               type="button"
               className="td-btn td-btn-outline"
+              onClick={() => setIsSubtaskOpen(true)}
+            >
+              <Plus size={16} />
+              Thêm công việc con
+            </button>
+            <button
+              type="button"
+              className="td-btn td-btn-outline"
               onClick={openEditTaskModal}
             >
               <Pencil size={16} />
@@ -1385,6 +1443,20 @@ export function DetailTask({
         <div className="td-main-grid">
           {/* Left Column Stack */}
           <div className="td-stack">
+            <article className="td-card">
+              <div className="td-section-head">
+                <h3><Layers size={19} /> Công việc con</h3>
+                <span className="td-section-pill">{subtasks.length} mục</span>
+              </div>
+              <div className="td-subtask-list">
+                {subtasks.length ? subtasks.map((subtask) => (
+                  <Link key={subtask.id} to={`/tasks/${subtask.code}`} state={{ task: subtask, project: { id: activeProjectId, name: activeProjectName, projectCode: activeProjectCode } }} className="td-subtask-row">
+                    <span><strong>{subtask.title}</strong><small>{subtask.code}</small></span>
+                    <span className="td-subtask-status">{subtask.status}</span>
+                  </Link>
+                )) : <p className="td-subtask-empty">Chưa có công việc con.</p>}
+              </div>
+            </article>
             {/* 1. Hero Visual Inspection Dossier Card */}
             <article className="td-card">
               <div className="td-hero-banner">
@@ -1901,6 +1973,23 @@ export function DetailTask({
           </aside>
         </div>
       </div>
+
+      <Dialog open={isSubtaskOpen} onOpenChange={setIsSubtaskOpen}>
+        <DialogContent className="max-w-[480px] rounded-xl border border-[#e6e3e9] bg-white p-0">
+          <DialogHeader className="border-b border-[#eeeaf0] px-6 py-5 text-left">
+            <DialogTitle className="text-lg font-semibold text-[#1e1c22]">Thêm công việc con</DialogTitle>
+            <DialogDescription className="text-sm text-[#6e6b75]">Công việc mới thuộc {currentTask.code}.</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleCreateSubtask} className="flex flex-col gap-4 p-6">
+            <label htmlFor="td-subtask-title" className="text-sm font-medium text-[#302e34]">Tên công việc</label>
+            <input id="td-subtask-title" autoFocus required maxLength={160} value={subtaskTitle} onChange={(event) => setSubtaskTitle(event.target.value)} className="h-10 rounded-md border border-[#d5d1dc] px-3 text-sm outline-none focus:border-[#00786e]" placeholder="Nhập tên công việc con" />
+            <div className="flex justify-end gap-2 border-t border-[#eeeaf0] pt-4">
+              <button type="button" className="td-btn td-btn-outline h-10" onClick={() => setIsSubtaskOpen(false)}>Hủy</button>
+              <button type="submit" className="td-btn td-btn-primary h-10"><Plus size={15} /> Thêm công việc</button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Task Modal */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>

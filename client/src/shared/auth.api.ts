@@ -1,9 +1,10 @@
 import axios from "axios";
+import { AxiosClient } from "./axios.client";
 
 export const refreshToken = async () => {
   const refreshToken = localStorage.getItem("refresh_token");
 
-  const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
+  const res = await AxiosClient.post(`/api/auth/refresh`, {
     refreshToken,
   });
 
@@ -13,8 +14,7 @@ export const refreshToken = async () => {
 export const logout = async () => {
   const refreshToken = localStorage.getItem("refresh_token");
 
-  return axios.post<{ message: string }>(
-    `${import.meta.env.VITE_API_URL}/auth/logout`,
-    { refreshToken },
-  );
+  return AxiosClient.post(`/api/auth/logout`, {
+    refreshToken,
+  });
 };

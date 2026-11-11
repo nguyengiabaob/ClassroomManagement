@@ -12,6 +12,7 @@ import ManagedFields from "@/features/ManagedFields/ManagedFields";
 import UserManagement from "@/features/UserManagement/UserManagement";
 import NotFound from "@/components/Layout/NotFound";
 import DetailTask from "@/features/Task/detailTask";
+import LanguageSettingsPage from "@/features/Language/LanguageSettingsPage";
 
 const RoutesApp = () => {
   return (
@@ -45,6 +46,7 @@ const RoutesMainApp = () => {
         <Route path="/personnel" element={<UserManagement />}></Route>
         <Route path="/users" element={<UserManagement />}></Route>
         <Route path="/chat" element={<ChatPage />}></Route>
+        <Route path="/settings" element={<LanguageSettingsPage />} />
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

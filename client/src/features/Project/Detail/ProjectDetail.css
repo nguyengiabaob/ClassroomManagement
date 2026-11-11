@@ -1023,6 +1023,91 @@
   background: #006b61;
 }
 
+.project-tasks-toolbar-actions,
+.project-tasks-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-tasks-view-toggle {
+  padding: 3px;
+  border: 1px solid #e6e2ec;
+  border-radius: 9px;
+  background: #f8f7f9;
+}
+
+.project-tasks-view-toggle button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #625f68;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.project-tasks-view-toggle button.is-active {
+  background: #ffffff;
+  color: #242128;
+  box-shadow: 0 1px 3px rgba(24, 20, 32, 0.12);
+}
+
+.project-tasks-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #e9e6ec;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.project-tasks-table {
+  width: 100%;
+  min-width: 850px;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+
+.project-tasks-table th {
+  height: 42px;
+  padding: 0 14px;
+  border-bottom: 1px solid #e9e6ec;
+  color: #68656f;
+  background: #ffffff;
+  font-size: 12px;
+  font-weight: 550;
+  white-space: nowrap;
+}
+
+.project-tasks-table td {
+  height: 54px;
+  padding: 7px 14px;
+  border-bottom: 1px solid #f0edf2;
+  color: #4d4a53;
+}
+
+.project-tasks-table tbody tr:last-child td { border-bottom: 0; }
+.project-tasks-table tbody tr.is-subtask { background: #fcfbfc; }
+.project-tasks-table th:first-child,
+.project-tasks-table td:first-child { position: sticky; left: 0; z-index: 1; background: inherit; }
+.project-tasks-table th:first-child { z-index: 2; background: #ffffff; }
+
+.project-task-tree-cell { display: flex; align-items: center; gap: 8px; min-width: 260px; }
+.project-task-tree-branch { color: #8c8991; font-size: 16px; }
+.project-task-tree-copy { display: grid; gap: 3px; }
+.project-task-tree-copy a { color: #29262e; font-weight: 600; text-decoration: none; }
+.project-task-tree-copy a:hover { color: #00786e; text-decoration: underline; }
+.project-task-tree-copy small { color: #77737d; font-size: 11px; }
+.project-task-table-progress { display: flex; align-items: center; gap: 8px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.project-task-table-progress > span { width: 72px; height: 5px; overflow: hidden; border-radius: 99px; background: #e9e7eb; }
+.project-task-table-progress i { display: block; height: 100%; border-radius: inherit; background: #087f74; }
+.project-task-table-actions { display: flex; justify-content: flex-end; gap: 4px; }
+
 .project-tasks-list {
   display: flex;
   flex-direction: column;

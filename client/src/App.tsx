@@ -10,6 +10,7 @@ import { saveUserlogined } from "./redux/usersReducer";
 import type { AppDispatch } from "./redux/store";
 import { RoutesApp } from "./routes";
 import { useDispatch } from "react-redux";
+import { LanguageProvider } from "./features/Language/LanguageContext";
 
 function App() {
   const dispatch = useDispatch<AppDispatch>();
@@ -101,8 +102,10 @@ function App() {
 
   return (
     <React.Fragment>
-      <RoutesApp />
-      <Toaster position="top-right" richColors />
+      <LanguageProvider>
+        <RoutesApp />
+        <Toaster position="top-right" richColors />
+      </LanguageProvider>
     </React.Fragment>
   );
 }

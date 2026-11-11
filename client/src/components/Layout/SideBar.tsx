@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { defaultSections } from "@/utils";
+import { useLanguage } from "@/features/Language/LanguageContext";
 
 export interface MenuItem {
   title: string;
@@ -41,6 +42,7 @@ const AppSideBar = ({
   onLogout,
   onNavigate,
 }: SideBarProps) => {
+  const { t } = useLanguage();
   return (
     <aside
       className="flex h-full min-h-0 w-full flex-col px-5 pb-5 pt-6 text-left"
@@ -48,7 +50,7 @@ const AppSideBar = ({
     >
       <NavLink
         to="/"
-        aria-label={`${brandName} - Trang chủ`}
+        aria-label={`${brandName} - ${t("Tổng quan")}`}
         onClick={onNavigate}
         className="mb-8 flex shrink-0 items-center gap-3 rounded-xl px-2 pr-8 text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-[#007f73]/30"
       >
@@ -65,12 +67,12 @@ const AppSideBar = ({
       </NavLink>
 
       <div className="min-h-0 flex-1 overflow-y-auto pr-1 [scrollbar-width:thin]">
-        <nav aria-label="Điều hướng thanh bên" className="space-y-5">
+        <nav aria-label={t("Điều hướng chính")} className="space-y-5">
           {sections.map((section, sectionIndex) => (
             <section key={section.title || sectionIndex}>
               {section.title && (
                 <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                  {section.title}
+                  {section.title && t(section.title)}
                 </p>
               )}
 
@@ -104,7 +106,7 @@ const AppSideBar = ({
                             style={{ color: isActive ? "#ffffff" : "#53605e" }}
                             strokeWidth={2}
                           />
-                          <span className="truncate">{item.title}</span>
+                          <span className="truncate">{t(item.title)}</span>
                         </>
                       )}
                     </NavLink>
@@ -124,7 +126,7 @@ const AppSideBar = ({
           style={{ backgroundColor: "#e5f1ef", color: "#00796f" }}
         >
           <CirclePlus className="size-[18px]" />
-          Dự án mới
+          {t("Dự án mới")}
         </Button>
       </div>
 
@@ -135,7 +137,7 @@ const AppSideBar = ({
           className="h-10 w-full justify-start gap-3 px-4 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-[#006d64]"
         >
           <CircleHelp className="size-[17px]" />
-          Hỗ trợ
+          {t("Hỗ trợ")}
         </Button>
         <Button
           type="button"
@@ -143,7 +145,7 @@ const AppSideBar = ({
           className="h-10 w-full justify-start gap-3 px-4 text-xs font-medium text-slate-600 hover:bg-slate-50 hover:text-[#006d64]"
         >
           <UserRound className="size-[17px]" />
-          Tài khoản
+          {t("Tài khoản")}
         </Button>
 
         {user && (
@@ -178,8 +180,8 @@ const AppSideBar = ({
               type="button"
               variant="ghost"
               size="icon-sm"
-              aria-label="Đăng xuất"
-              title="Đăng xuất"
+              aria-label={t("Đăng xuất")}
+              title={t("Đăng xuất")}
               onClick={() => {
                 onNavigate?.();
                 onLogout?.();

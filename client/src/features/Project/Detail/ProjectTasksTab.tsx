@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock,
+  List,
   Eye,
   HardHat,
   Hash,
@@ -13,6 +14,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Table2,
   Trash2,
   UserCheck,
 } from "lucide-react";
@@ -54,6 +56,7 @@ export type TaskCategory =
 
 export interface ProjectTask {
   id: number;
+  parentTaskId?: number;
   code: string;
   title: string;
   description: string;
@@ -229,6 +232,7 @@ export default function ProjectTasksTab({ project }: { project: ProjectItem }) {
   const [statusFilter, setStatusFilter] = useState<"Tất cả" | TaskStatus>(
     "Tất cả",
   );
+  const [taskView, setTaskView] = useState<"list" | "table">("list");
 
   // Modal state for Create / Edit
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -300,6 +304,33 @@ export default function ProjectTasksTab({ project }: { project: ProjectItem }) {
       return matchesStatus && matchesSearch;
     });
   }, [tasks, searchQuery, statusFilter]);
+
+  const treeRows = useMemo(() => {
+    const visibleIds = new Set(filteredTasks.map((task) => task.id));
+    for (const task of filteredTasks) {
+      let parent = tasks.find((item) => item.id === task.parentTaskId);
+      while (parent && !visibleIds.has(parent.id)) {
+        visibleIds.add(parent.id);
+        parent = tasks.find((item) => item.id === parent?.parentTaskId);
+      }
+    }
+
+    const rows: Array<{ task: ProjectTask; depth: number }> = [];
+    const visited = new Set<number>();
+    const append = (task: ProjectTask, depth: number) => {
+      if (!visibleIds.has(task.id) || visited.has(task.id)) return;
+      visited.add(task.id);
+      rows.push({ task, depth });
+      tasks
+        .filter((child) => child.parentTaskId === task.id)
+        .forEach((child) => append(child, depth + 1));
+    };
+    tasks
+      .filter((task) => !tasks.some((item) => item.id === task.parentTaskId))
+      .forEach((task) => append(task, 0));
+    tasks.forEach((task) => append(task, 0));
+    return rows;
+  }, [tasks, filteredTasks]);
 
   const filteredModalEmployees = useMemo(() => {
     const q = assigneeSearch.trim().toLocaleLowerCase("vi");
@@ -560,14 +591,15 @@ export default function ProjectTasksTab({ project }: { project: ProjectItem }) {
           </div>
         </div>
 
-        <button
-          type="button"
-          className="project-tasks-add-btn"
-          onClick={openCreateModal}
-        >
-          <Plus size={18} />
-          Thêm công việc
-        </button>
+        <div className="project-tasks-toolbar-actions">
+          <div className="project-tasks-view-toggle" role="group" aria-label="Kiểu hiển thị công việc">
+            <button type="button" className={taskView === "list" ? "is-active" : ""} aria-pressed={taskView === "list"} onClick={() => setTaskView("list")}><List size={16} /> Danh sách</button>
+            <button type="button" className={taskView === "table" ? "is-active" : ""} aria-pressed={taskView === "table"} onClick={() => setTaskView("table")}><Table2 size={16} /> Bảng cây</button>
+          </div>
+          <button type="button" className="project-tasks-add-btn" onClick={openCreateModal}>
+            <Plus size={18} /> Thêm công việc
+          </button>
+        </div>
       </div>
 
       {/* Tasks List */}
@@ -589,7 +621,7 @@ export default function ProjectTasksTab({ project }: { project: ProjectItem }) {
           </Button>
         </div>
       ) : (
-        <div className="project-tasks-list">
+        taskView === "list" ? <div className="project-tasks-list">
           {filteredTasks.map((task) => {
             const isCompleted = task.status === "Hoàn thành";
             return (
@@ -706,6 +738,29 @@ export default function ProjectTasksTab({ project }: { project: ProjectItem }) {
               </article>
             );
           })}
+        </div> : <div className="project-tasks-table-wrap">
+          <table className="project-tasks-table">
+            <thead><tr><th scope="col">Công việc</th><th scope="col">Phụ trách</th><th scope="col">Hạn</th><th scope="col">Tiến độ</th><th scope="col">Trạng thái</th><th scope="col"><span className="sr-only">Thao tác</span></th></tr></thead>
+            <tbody>
+              {treeRows.map(({ task, depth }) => (
+                <tr key={task.id} className={task.parentTaskId ? "is-subtask" : ""}>
+                  <td><div className="project-task-tree-cell" style={{ paddingLeft: `${depth * 24}px` }}>
+                    {depth > 0 && <span className="project-task-tree-branch" aria-hidden="true">↳</span>}
+                    <span className="project-task-tree-copy"><Link to={`/tasks/${task.code}`} state={{ task, project }}>{task.title}</Link><small>{task.code} · {task.parentTaskId ? "Công việc con" : "Công việc chính"}</small></span>
+                  </div></td>
+                  <td>{task.assignee}</td>
+                  <td>{formatDueDate(task.dueDate)}</td>
+                  <td><span className="project-task-table-progress"><span><i style={{ width: `${task.progress}%` }} /></span>{task.progress}%</span></td>
+                  <td><span className={`project-task-status ${getStatusClass(task.status)}`}>{task.status}</span></td>
+                  <td><div className="project-task-table-actions">
+                    <Link to={`/tasks/${task.code}`} state={{ task, project }} className="project-task-icon-btn" aria-label={`Xem chi tiết ${task.title}`}><Eye size={15} /></Link>
+                    <button type="button" className="project-task-icon-btn" onClick={() => openEditModal(task)} aria-label={`Chỉnh sửa ${task.title}`}><Pencil size={15} /></button>
+                    <button type="button" className="project-task-icon-btn is-danger" onClick={() => setDeletingTask(task)} aria-label={`Xóa ${task.title}`}><Trash2 size={15} /></button>
+                  </div></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 

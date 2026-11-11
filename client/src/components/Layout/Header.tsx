@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import { useLanguage } from "@/features/Language/LanguageContext"
 
 export interface UserProp {
   name: string
@@ -40,6 +41,7 @@ export const Header = ({
   onNavigationChange,
   onOpenMobileMenu,
 }: HeaderProps) => {
+  const { t } = useLanguage()
   const handleSearchChange = (event: ChangeEvent<HTMLInputElement>) => {
     onSearchChange?.(event.target.value)
   }
@@ -51,7 +53,7 @@ export const Header = ({
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Mở menu thanh bên"
+        aria-label={t("Mở menu thanh bên")}
         onClick={onOpenMobileMenu}
         className="-ml-1 mr-1 size-9 shrink-0 rounded-xl text-slate-700 hover:bg-emerald-50 hover:text-[#007f73] focus-visible:ring-2 focus-visible:ring-[#007f73]/30 lg:hidden"
       >
@@ -71,7 +73,7 @@ export const Header = ({
           ConstructFriendly
         </span>
       </div>
-      <nav aria-label="Điều hướng chính" className="hidden h-full shrink-0 items-center gap-7 lg:flex xl:gap-10">
+      <nav aria-label={t("Điều hướng chính")} className="hidden h-full shrink-0 items-center gap-7 lg:flex xl:gap-10">
         {navigationItems.map((item) => {
           const active = item === title
 
@@ -86,7 +88,7 @@ export const Header = ({
                 active && "font-bold text-[#006d64] after:absolute after:inset-x-0 after:bottom-3 after:h-0.5 after:bg-[#007f73]",
               )}
             >
-              {item}
+              {t(item)}
             </button>
           )
         })}
@@ -94,13 +96,13 @@ export const Header = ({
 
       <div className="mx-auto min-w-0 flex-1 px-3 sm:px-6 lg:max-w-md xl:max-w-lg">
         <label className="relative block">
-          <span className="sr-only">Tìm kiếm nhật ký</span>
+          <span className="sr-only">{t("Tìm kiếm nhật ký")}</span>
           <Search aria-hidden="true" className="pointer-events-none absolute left-4 top-1/2 z-10 size-[19px] -translate-y-1/2 text-slate-500" />
           <Input
             type="search"
             value={searchValue}
             onChange={handleSearchChange}
-            placeholder="Tìm kiếm nhật ký..."
+            placeholder={t("Tìm kiếm nhật ký...")}
             className="h-10 rounded-xl border-transparent bg-[#f7f5fc] pl-11 pr-4 text-sm text-slate-800 shadow-none placeholder:text-slate-500 focus-visible:border-[#007f73]/30 focus-visible:ring-[#007f73]/15"
           />
         </label>
@@ -111,7 +113,7 @@ export const Header = ({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label={notificationCount > 0 ? `${notificationCount} thông báo mới` : "Thông báo"}
+          aria-label={notificationCount > 0 ? `${notificationCount} ${t("thông báo mới")}` : t("Thông báo")}
           onClick={onNotificationClick}
           className="relative size-9 rounded-full text-[#007f73] hover:bg-emerald-50 hover:text-[#006d64]"
         >
@@ -125,7 +127,7 @@ export const Header = ({
           type="button"
           variant="ghost"
           size="icon"
-          aria-label="Cài đặt"
+          aria-label={t("Cài đặt")}
           onClick={onSettingsClick}
           className="hidden size-9 rounded-full text-[#007f73] hover:bg-emerald-50 hover:text-[#006d64] sm:inline-flex"
         >

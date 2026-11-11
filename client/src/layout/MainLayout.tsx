@@ -13,6 +13,7 @@ import {
 import { saveUserlogined } from "../redux/usersReducer";
 import type { RootState } from "../redux/store";
 import { logout } from "../shared/auth.api";
+import { useLanguage } from "@/features/Language/LanguageContext";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -21,6 +22,7 @@ interface MainLayoutProps {
 const MainLayout = (props: MainLayoutProps) => {
   const { children } = props;
   const user = useSelector((state: RootState) => state.users);
+  const { t } = useLanguage();
   const [view, setView] = useState("Quản lý Công trường");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const dispatch = useDispatch();
@@ -91,6 +93,7 @@ const MainLayout = (props: MainLayoutProps) => {
           title={view}
           notificationCount={5}
           user={headerUserData}
+          onSettingsClick={() => navigate("/settings")}
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
           onNavigationChange={(item) => setView(item)}
         />
@@ -99,7 +102,7 @@ const MainLayout = (props: MainLayoutProps) => {
           <div className="max-w-8xl mx-auto h-full">{children}</div>
         </main>
         <footer className="shrink-0 py-6 text-center text-slate-400">
-          Skipli Classroom Management System ©2024
+          {t("Skipli Classroom Management System ©2024")}
         </footer>
       </div>
     </div>
